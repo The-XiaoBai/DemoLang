@@ -1,4 +1,4 @@
-file(GLOB SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*.cpp")
+file(GLOB SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*/*.cpp")
 add_library(DemoLang STATIC ${SOURCES})
 
 target_include_directories(DemoLang PRIVATE ${CMAKE_SOURCE_DIR}/include)
