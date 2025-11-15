@@ -2,7 +2,7 @@
  * @file src/main.cpp
  * @brief Program entry point.
  * @author The-XiaoBai
- * @date 2025/11/14
+ * @date 2025/11/15
 **/
 
 
@@ -38,6 +38,39 @@ static void repl() {
             // Lexical analysis (tokenization)
             Lexer& lexer = Lexer::instance();
             auto tokens = lexer.tokenize(input);
+
+            // ? DEBUG
+            for (const Token& token : tokens) {
+                switch (token.type) {
+                    case TokenType::END:
+                        std::cout << "END" << std::endl;
+                        break;
+                    case TokenType::OPERATOR:
+                        std::cout << "OPERATOR: " << token.value << std::endl;
+                        break;
+                    case TokenType::KEYWORD:
+                        std::cout << "KEYWORD: " << token.value << std::endl;
+                        break;
+                    case TokenType::IDENTIFIER:
+                        std::cout << "IDENTIFIER: " << token.value << std::endl;
+                        break;
+                    case TokenType::INTEGER_LITERAL:
+                        std::cout << "INTEGER_LITERAL: " << token.value << std::endl;
+                        break;
+                    case TokenType::FLOAT_LITERAL:
+                        std::cout << "FLOAT_LITERAL: " << token.value << std::endl;
+                        break;
+                    case TokenType::STRING_LITERAL:
+                        std::cout << "STRING_LITERAL: " << token.value << std::endl;
+                        break;
+                    case TokenType::ERROR:
+                        std::cout << "ERROR: " << token.value << std::endl;
+                        break;
+                    default:
+                        std::cout << "UNKNOWN" << std::endl;
+                        break;
+                }
+            }
 
             // Syntax analysis (parsing)
             Parser& parser = Parser::instance();

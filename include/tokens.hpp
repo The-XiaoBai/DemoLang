@@ -2,7 +2,7 @@
  * @file include/tokens.hpp
  * @brief The token types used in the lexical analysis.
  * @author The-XiaoBai
- * @date 2025/11/14
+ * @date 2025/11/15
 **/
 
 #pragma once
@@ -21,18 +21,39 @@ namespace Tokens {
  * @brief Token types used in the lexical analysis.
 **/
 enum class TokenType {
-    END
+    END,                // End of input
+    OPERATOR,           // Plus, minus, multiply, divide, etc.
+    KEYWORD,            // Such as if, else, while, etc.
+    IDENTIFIER,         // Variable names, function names, etc.
+    INTEGER_LITERAL,    // Integer
+    FLOAT_LITERAL,      // Float
+    STRING_LITERAL,     // String
+    ERROR               // Error
+};
+
+
+/**
+ * @brief List of supported whitespaces.
+**/
+const std::vector<std::string> whitespaces = {
+    " ", "\t", "\n", "\r"
 };
 
 
 /**
  * @brief List of supported operators.
 **/
-const std::vector<std::string> operators = {};
+const std::vector<std::string> operators = {
+    "!", "&", "|",
+    "=", "(", ")", "{", "}",
+    "==", "!=", ">", "<", ">=", "<=", 
+    "+", "-", "*", "/"
+};
 
 
 /**
  * @brief List of supported keywords.
+ * @note TODO: Prepared for future use.
 **/
 const std::vector<std::string> keywords = {};
 

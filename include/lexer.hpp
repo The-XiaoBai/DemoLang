@@ -2,7 +2,7 @@
  * @file include/lexer.hpp
  * @brief Tokenizing input to tokens.
  * @author The-XiaoBai
- * @date 2025/11/14
+ * @date 2025/11/15
 **/
 
 #pragma once
@@ -55,9 +55,58 @@ public:
 };
 
 
-class AHandler : public BaseHandler {
+class EOFHandler : public BaseHandler {
 public:
-    AHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    EOFHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    std::shared_ptr<Token> handle();
+};
+
+
+class WhitespaceHandler : public BaseHandler {
+public:
+    WhitespaceHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    std::shared_ptr<Token> handle();
+};
+
+
+class OperatorHandler : public BaseHandler {
+public:
+    OperatorHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    std::shared_ptr<Token> handle();
+};
+
+
+class KeywordHandler : public BaseHandler {
+public:
+    KeywordHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    std::shared_ptr<Token> handle();
+};
+
+
+class IdentifierHandler : public BaseHandler {
+public:
+    IdentifierHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    std::shared_ptr<Token> handle();
+};
+
+
+class NumberHandler : public BaseHandler {
+public:
+    NumberHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    std::shared_ptr<Token> handle();
+};
+
+
+class StringHandler : public BaseHandler {
+public:
+    StringHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    std::shared_ptr<Token> handle();
+};
+
+
+class UnknownHandler : public BaseHandler {
+public:
+    UnknownHandler(Lexer& lexer) : BaseHandler(lexer) {}
     std::shared_ptr<Token> handle();
 };
 
