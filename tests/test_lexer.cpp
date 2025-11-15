@@ -20,7 +20,7 @@ protected:
 class TestOperators : public LexerTestCase {
 public:
     void run() override {
-        auto tokens = lexer->tokenize("+-*/ !=");
+        auto tokens = lexer->tokenize("+-*/ != <= < =");
 
         auto token1 = tokens[0];
         auto token2 = tokens[1];
@@ -29,11 +29,8 @@ public:
         auto token5 = tokens[4];
         auto token6 = tokens[5];
         auto token7 = tokens[6];
-
-
-        for (auto &token : tokens) {
-            std::cout << "Token: Type=" << static_cast<int>(token.type) << ", Value=\"" << token.value << "\"" << std::endl;
-        }
+        auto token8 = tokens[7];
+        auto token9 = tokens[8];
 
         assert(token1.type == TokenType::OPERATOR);
         assert(token1.value == "+");
@@ -44,10 +41,14 @@ public:
         assert(token4.type == TokenType::OPERATOR);
         assert(token4.value == "/");
         assert(token5.type == TokenType::OPERATOR);
-        assert(token5.value == "!");
+        assert(token5.value == "!=");
         assert(token6.type == TokenType::OPERATOR);
-        assert(token6.value == "=");
-        assert(token7.type == TokenType::END);
+        assert(token6.value == "<=");
+        assert(token7.type == TokenType::OPERATOR);
+        assert(token7.value == "<");
+        assert(token8.type == TokenType::OPERATOR);
+        assert(token8.value == "=");
+        assert(token9.type == TokenType::END);
     }
 };
 
@@ -83,11 +84,7 @@ public:
         auto token3 = tokens[2];
         auto token4 = tokens[3];
         auto token5 = tokens[4];
-
-        for (auto &token : tokens) {
-            std::cout << "Token: Type=" << static_cast<int>(token.type) << ", Value=\"" << token.value << "\"" << std::endl;
-        }
-
+        
         assert(token1.type == TokenType::INTEGER_LITERAL);
         assert(token1.value == "123");
         assert(token2.type == TokenType::FLOAT_LITERAL);
