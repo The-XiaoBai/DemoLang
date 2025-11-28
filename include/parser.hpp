@@ -2,7 +2,7 @@
  * @file include/parser.hpp
  * @brief Parse tokens into an Abstract Syntax Tree (AST).
  * @author The-XiaoBai
- * @date 2025/11/14
+ * @date 2025/11/16
 **/
 
 #pragma once
@@ -42,6 +42,7 @@ public:
     void advance() { if (current_pos < tokens.size()) current_pos++; }
     bool match(TokenType type, const std::string& value);
     std::shared_ptr<ASTNode> parse(const std::vector<Token> &tokens);
+    std::shared_ptr<ASTNode> parseExpression();
 };
 
 
@@ -55,10 +56,32 @@ public:
 };
 
 
-class AParser : public BaseParser {
+class UnaryParser : public BaseParser {
+private:
+    std::vector<std::string> operators;
+
 public:
-    AParser(Parser& parser) : BaseParser(parser) {};
-    std::shared_ptr<ASTNode> handle();
+    UnaryParser(Parser& parser, std::vector<std::string> operators)
+        : BaseParser(parser), operators(operators) {};
+    std::shared_ptr<ASTNode> handle() override;
+};
+
+
+class BinaryParser : public BaseParser {
+private:
+    std::vector<std::string> operators;
+
+public:
+    BinaryParser(Parser& parser, std::vector<std::string> operators)
+        : BaseParser(parser), operators(operators) {};
+    std::shared_ptr<ASTNode> handle() override;
+};
+
+
+class PrimaryParser : public BaseParser {
+public:
+    PrimaryParser(Parser& parser) : BaseParser(parser) {};
+    std::shared_ptr<ASTNode> handle() override;
 };
 
 } // namespace ParserSpace

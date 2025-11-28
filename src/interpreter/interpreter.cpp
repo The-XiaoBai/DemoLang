@@ -32,6 +32,12 @@ std::string InterpreterSpace::Interpreter::interpret(const std::shared_ptr<AST::
 }
 
 
-void InterpreterSpace::Interpreter::visit(ANode& node) {}
+void InterpreterSpace::Interpreter::visit(UnaryOpNode& node) {}
+void InterpreterSpace::Interpreter::visit(BinaryOpNode& node) {}
+void InterpreterSpace::Interpreter::visit(IdNode& node) {}
+void InterpreterSpace::Interpreter::visit(IntNode& node) {}
+void InterpreterSpace::Interpreter::visit(FloatNode& node) {}
+void InterpreterSpace::Interpreter::visit(StringNode& node) {}
+void InterpreterSpace::Interpreter::visit(ErrorNode& node) {}
 
 } // namespace DemoLang

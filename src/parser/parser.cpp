@@ -2,7 +2,7 @@
  * @file src/parser/parser.cpp
  * @brief Transform tokens into an Abstract Syntax Tree (AST).
  * @author The-XiaoBai
- * @date 2025/11/14
+ * @date 2025/11/16
 **/
 
 #include "ast.hpp"
@@ -24,14 +24,24 @@ std::shared_ptr<ASTNode> ParserSpace::Parser::parse(const std::vector<Token> &to
     this->tokens = tokens;
     this->current_pos = 0;
     
-    Utils::Chain<ASTNode> chain;
-    chain.addHandler(std::make_shared<AParser>(*this));
-    return chain.execute();
+    try {
+        return parseExpression();
+    } catch (const std::exception& e) {
+        return std::make_shared<ErrorNode>(e.what());
+    }
 }
 
-
-std::shared_ptr<ASTNode> ParserSpace::AParser::handle() {
-    return std::shared_ptr<ASTNode>();
+std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpression() {
+    Utils::Chain<ASTNode> chain;
+    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"="}));
+    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"&", "|"}));
+    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"==", "!="}));
+    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"<", "<=", ">", ">="}));
+    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"+", "-"}));
+    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"*", "/"}));
+    chain.addHandler(std::make_shared<UnaryParser>(*this, std::vector<std::string>{"!", "-"}));
+    chain.addHandler(std::make_shared<PrimaryParser>(*this));
+    return chain.execute();
 }
 
 } // namespace DemoLang

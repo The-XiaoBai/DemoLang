@@ -53,10 +53,15 @@ private:
 
 public:
     Interpreter() = default;
-    
     std::string interpret(const std::shared_ptr<ASTNode>& node);
     
-    void visit(ANode& node) override;
+    void visit(UnaryOpNode& node) override;
+    void visit(BinaryOpNode& node) override;
+    void visit(IdNode& node) override;
+    void visit(IntNode& node) override;
+    void visit(FloatNode& node) override;
+    void visit(StringNode& node) override;
+    void visit(ErrorNode& node) override;
 };
 
 } // namespace InterpreterSpace
