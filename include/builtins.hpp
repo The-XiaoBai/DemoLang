@@ -2,7 +2,7 @@
  * @file include/builtins.hpp
  * @brief Some built-in types.
  * @author The-XiaoBai
- * @date 2025/11/14
+ * @date 2025/12/12
 **/
 
 #pragma once
@@ -38,17 +38,66 @@ public:
 };
 
 
-class AType : public BaseType {
+class Integer : public BaseType {
 private:
-    std::string name = "A-Type";
+    std::string name = "Integer";
+    long long value;
+
+public:
+    Integer() = default;
+    explicit Integer(long long val) : value(val) {}
+    std::string getName() const override { return name; }
+    std::any getValue() const override { return value; }
+    std::shared_ptr<BaseType> clone() const override {
+        return std::make_shared<Integer>(value);
+    }
+};
+
+
+class Float : public BaseType {
+private:
+    std::string name = "Float";
+    long double value;
+
+public:
+    Float() = default;
+    explicit Float(long double val) : value(val) {}
+    std::string getName() const override { return name; }
+    std::any getValue() const override { return value; }
+    std::shared_ptr<BaseType> clone() const override {
+        return std::make_shared<Float>(value);
+    }
+};
+
+
+class String : public BaseType {
+private:
+    std::string name = "String";
     std::string value;
 
 public:
-    AType() = default;
-    explicit AType(std::string val) : value(val) {}
+    String() = default;
+    explicit String(const std::string& val) : value(val) {}
     std::string getName() const override { return name; }
     std::any getValue() const override { return value; }
-    std::shared_ptr<BaseType> clone() const override { return std::make_shared<AType>(value); }
+    std::shared_ptr<BaseType> clone() const override {
+        return std::make_shared<String>(value);
+    }
+};
+
+class Exception : public BaseType {
+private:
+    std::string name = "Exception";
+    std::string value;
+
+public:
+    Exception() = default;
+    explicit Exception(const std::string& val) : value(val) {}
+    std::string getName() const override { return name; }
+    std::any getValue() const override { return value; }
+    std::shared_ptr<BaseType> clone() const override {
+        return std::make_shared<Exception>(value);
+    }
 };
 
 } // namespace ValueTypes

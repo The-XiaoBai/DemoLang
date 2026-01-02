@@ -2,7 +2,7 @@
  * @file include/interpreter.hpp
  * @brief Basic declaration for interpreter.
  * @author The-XiaoBai
- * @date 2025/11/14
+ * @date 2026/1/2
 **/
 
 #pragma once
@@ -24,6 +24,30 @@ using namespace DemoLang::ValueTypes;
 namespace DemoLang {
 
 namespace InterpreterSpace {
+
+// Base binary operator class
+class BinOperator {
+public:
+    virtual ~BinOperator() = default;
+    virtual std::shared_ptr<BaseType> execute(
+        std::shared_ptr<BaseType> left, 
+        std::shared_ptr<BaseType> right
+    ) = 0;
+};
+
+// Factory for creating binary operators
+class BinOperatorFactory {
+private:
+    static std::unordered_map<std::string, std::unique_ptr<BinOperator>> operators;
+    
+public:
+    static void initialize();
+    static std::shared_ptr<BaseType> execute(
+        const std::string& op, 
+        std::shared_ptr<BaseType> left, 
+        std::shared_ptr<BaseType> right
+    );
+};
 
 /**
  * @brief Environment to store variables in the context of execution
@@ -48,7 +72,7 @@ class Interpreter : public Singleton<Interpreter>, public ASTVisitor {
     friend class Singleton<Interpreter>;
 
 private:
-    static Environment env;
+    Environment env = Environment();
     std::shared_ptr<BaseType> result;
 
 public:
