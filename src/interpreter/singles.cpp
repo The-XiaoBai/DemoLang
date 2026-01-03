@@ -28,7 +28,7 @@ void InterpreterSpace::Interpreter::visit(StringNode& node) {
 }
 
 void InterpreterSpace::Interpreter::visit(ErrorNode& node) {
-    result = std::make_shared<Exception>(node.getMsg());
+    result = std::make_shared<Exception>(node.getMessage());
 }
 
 } // namespace DemoLang

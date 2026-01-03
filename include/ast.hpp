@@ -103,21 +103,21 @@ private:
     long long value;
 
 public:
-    IntNode(long long val) : value(val) {}
+    explicit IntNode(long long val) : value(val) {}
     void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
     long long getValue() const { return value; }
 };
 
 
 /**
- * @brief Node representing float literals.
+ * @brief Node representing floating-point literals.
 **/
 class FloatNode : public ASTNode {
 private:
     long double value;
 
 public:
-    FloatNode(long double val) : value(val) {}
+    explicit FloatNode(long double val) : value(val) {}
     void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
     long double getValue() const { return value; }
 };
@@ -131,23 +131,23 @@ private:
     std::string value;
 
 public:
-    StringNode(const std::string& val) : value(val) {}
+    explicit StringNode(const std::string& val) : value(val) {}
     void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
     const std::string& getValue() const { return value; }
 };
 
 
 /**
- * @brief Node representing parsing errors.
+ * @brief Node representing error conditions.
 **/
 class ErrorNode : public ASTNode {
 private:
-    std::string msg;
+    std::string message;
 
 public:
-    ErrorNode(const std::string& msg) : msg(msg) {}
+    explicit ErrorNode(const std::string& msg) : message(msg) {}
     void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
-    const std::string& getMsg() const { return msg; }
+    const std::string& getMessage() const { return message; }
 };
 
 } // namespace AST

@@ -24,33 +24,36 @@ using namespace DemoLang::InterpreterSpace;
  * @brief REPL for DemoLang.
 **/
 static void repl() {
+    // Display welcome message
     std::cout << "[DemoLang]" << std::endl;
     std::cout << std::endl;
 
+    // Main REPL loop
     while (true) {
         std::string input;
         std::cout << "> ";
         std::getline(std::cin, input);
 
+        // Skip empty input
         if (input.empty()) continue;
 
         try {
-            // Lexical analysis (tokenization)
+            // Lexical analysis (tokenization) - convert input string to tokens
             Lexer& lexer = Lexer::instance();
             auto tokens = lexer.tokenize(input);
 
-            // Syntax analysis (parsing)
+            // Syntax analysis (parsing) - convert tokens to Abstract Syntax Tree
             Parser& parser = Parser::instance();
             auto ast = parser.parse(tokens);
             
-            // Semantic analysis and execution (interpretation)
+            // Semantic analysis and execution (interpretation) - evaluate AST
             Interpreter& interpreter = Interpreter::instance();
             auto result = interpreter.interpret(ast);
 
             // Print result
             std::cout << ">>> " << result << std::endl;
         } catch (const std::exception& e) {
-            // Throw error
+            // Handle and display any processing errors
             std::cerr << "Processing Error: " << e.what() << std::endl;
         }
     }
