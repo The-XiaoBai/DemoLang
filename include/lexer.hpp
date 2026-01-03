@@ -2,7 +2,7 @@
  * @file include/lexer.hpp
  * @brief Tokenizing input to tokens.
  * @author The-XiaoBai
- * @date 2025/11/15
+ * @date 2026/01/03
 **/
 
 #pragma once
@@ -72,13 +72,6 @@ public:
 class OperatorHandler : public BaseHandler {
 public:
     OperatorHandler(Lexer& lexer) : BaseHandler(lexer) {}
-    std::shared_ptr<Token> handle();
-};
-
-
-class KeywordHandler : public BaseHandler {
-public:
-    KeywordHandler(Lexer& lexer) : BaseHandler(lexer) {}
     std::shared_ptr<Token> handle();
 };
 

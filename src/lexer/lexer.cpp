@@ -2,7 +2,7 @@
  * @file src/lexer/lexer.cpp
  * @brief Transform input to tokens.
  * @author The-XiaoBai
- * @date 2025/11/15
+ * @date 2026/01/03
 **/
 
 #include "lexer.hpp"
@@ -19,7 +19,6 @@ Token LexerSpace::Lexer::nextToken() {
     chain.addHandler(std::make_shared<StringHandler>(*this));
     chain.addHandler(std::make_shared<NumberHandler>(*this));
     chain.addHandler(std::make_shared<OperatorHandler>(*this));
-    chain.addHandler(std::make_shared<KeywordHandler>(*this));
     chain.addHandler(std::make_shared<IdentifierHandler>(*this));
     chain.addHandler(std::make_shared<UnknownHandler>(*this));
 

@@ -2,7 +2,7 @@
  * @file src/lexer/handlers.cpp
  * @brief Handlers for lexer.
  * @author The-XiaoBai
- * @date 2025/11/15
+ * @date 2026/01/03
 **/
 
 #include "lexer.hpp"
@@ -52,24 +52,6 @@ std::shared_ptr<Token> OperatorHandler::handle() {
         }
     }
     // No operator matched, pass to next handler
-    return nextHandler->handle();
-};
-
-
-std::shared_ptr<Token> KeywordHandler::handle() {
-    char c = lexer.current();
-    // Check for reserved keywords (currently empty, prepared for future use)
-    for (const auto& kw : keywords) {
-        if (c == kw[0] && lexer.pos() + kw.length() <= lexer.getInput().length()) {
-            std::string potentialKw = lexer.getInput().substr(lexer.pos(), kw.length());
-            if (potentialKw == kw && std::find(keywords.begin(), keywords.end(), potentialKw) != keywords.end()) {
-                // Found matching keyword, advance and return keyword token
-                lexer.advance(kw.length());
-                return std::make_shared<Token>(TokenType::KEYWORD, kw);
-            }
-        }
-    }
-    // No keyword matched, pass to next handler
     return nextHandler->handle();
 };
 
