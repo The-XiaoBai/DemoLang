@@ -6,14 +6,16 @@ This project is mainly used to demonstrate the basic principles and implementati
 
 ## Features
 
-- **REPL Interface**: Interactive command-line environment
-- **Complete Pipeline**: Lexer, Parser, and Interpreter
-- **Operator Precedence**: Arithmetic, logical, and comparison operators
-- **Basic Types**: Integer, Float, String with type safety
-- **Variables**: Assignment and reference system
-- **Error Handling**: Comprehensive error reporting
-- **Design Patterns**: Singleton, Chain of Responsibility, Visitor
-- **Full Test Suite**: Complete test coverage
+- **REPL Interface**: Interactive command-line environment with immediate feedback
+- **Complete Pipeline**: Lexer, Parser, and Interpreter with clean separation
+- **Operator Precedence**: Arithmetic, logical, and comparison operators with proper precedence
+- **Basic Types**: Integer, Float, String, etc.
+- **Variables**: Assignment and reference system with dynamic typing
+- **Error Handling**: Comprehensive error reporting for all stages
+- **Design Patterns**: Singleton, Chain of Responsibility, Visitor, Factory, Flyweight
+- **Full Test Suite**: Complete test coverage with CTest integration
+- **Memory Safe**: Modern C++ with smart pointers and RAII
+- **Extensible**: Clean architecture for easy language extension
 
 ## Architecture
 
@@ -24,8 +26,8 @@ Source → Lexer → Tokens → Parser → AST → Interpreter → Result
 ### Core Components
 
 - **Lexer**: Tokenizes input using Chain of Responsibility
-- **Parser**: Builds AST with proper operator precedence
-- **Interpreter**: Evaluates AST using Visitor pattern
+- **Parser**: Builds AST with proper operator precedence using recursive descent
+- **Interpreter**: Evaluates AST using Visitor pattern with type safety
 - **Environment**: Manages variable storage and scope
 - **Type System**: Integer, Float, String, Exception types
 

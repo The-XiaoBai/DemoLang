@@ -2,11 +2,12 @@
  * @file src/lexer/handlers.cpp
  * @brief Handlers for lexer.
  * @author The-XiaoBai
- * @date 2026/01/03
+ * @date 2026/01/31
 **/
 
 #include "lexer.hpp"
 #include "utils.hpp"
+#include <functional>
 
 using namespace DemoLang;
 using namespace DemoLang::Utils;
@@ -16,10 +17,12 @@ using namespace DemoLang::LexerSpace;
 
 namespace DemoLang {
 
+
+
 std::shared_ptr<Token> EOFHandler::handle() {
     // Check if we've reached end of input
     if (lexer.current() == '\0') {
-        return std::make_shared<Token>(TokenType::END, "");
+        return TokenFlyweight::getToken(TokenType::END);
     }
     // Pass to next handler if not end of input
     return nextHandler->handle();
@@ -47,7 +50,7 @@ std::shared_ptr<Token> OperatorHandler::handle() {
             if (potentialOp == op && std::find(operators.begin(), operators.end(), potentialOp) != operators.end()) {
                 // Found matching operator, advance position and return token
                 lexer.advance(op.length());
-                return std::make_shared<Token>(TokenType::OPERATOR, op);
+                return TokenFlyweight::getToken(TokenType::OPERATOR, op);
             }
         }
     }
@@ -66,7 +69,7 @@ std::shared_ptr<Token> IdentifierHandler::handle() {
             value += lexer.current();
             lexer.advance();
         }
-        return std::make_shared<Token>(TokenType::IDENTIFIER, value);
+        return TokenFlyweight::getToken(TokenType::IDENTIFIER, value);
     }
     // Not an identifier, pass to next handler
     return nextHandler->handle();
@@ -94,7 +97,7 @@ std::shared_ptr<Token> NumberHandler::handle() {
         
             // Must have at least one digit after decimal point
             if (!isdigit(static_cast<unsigned char>(lexer.current()))) 
-                return std::make_shared<Token>(TokenType::ERROR, "Invalid float: " + value);
+                return TokenFlyweight::getToken(TokenType::ERROR, "Invalid float: " + value);
         
             // Process fractional part
             while (isdigit(static_cast<unsigned char>(lexer.current()))) {
@@ -104,11 +107,11 @@ std::shared_ptr<Token> NumberHandler::handle() {
         
             // Check for multiple decimal points
             if (lexer.current() == '.') 
-                return std::make_shared<Token>(TokenType::ERROR, "Multiple decimal points");
+                return TokenFlyweight::getToken(TokenType::ERROR, "Multiple decimal points");
         }
     
         // Return appropriate token type based on presence of decimal point
-        return std::make_shared<Token>(
+        return TokenFlyweight::getToken(
             hasDecimal ? TokenType::FLOAT_LITERAL : TokenType::INTEGER_LITERAL,
             value
         );
@@ -144,10 +147,10 @@ std::shared_ptr<Token> StringHandler::handle() {
             // Found closing quote
             value += quote;
             lexer.advance();
-            return std::make_shared<Token>(TokenType::STRING_LITERAL, value);
+            return TokenFlyweight::getToken(TokenType::STRING_LITERAL, value);
         } else {
             // Unterminated string literal
-            return std::make_shared<Token>(TokenType::ERROR, "Unterminated string: " + value);
+            return TokenFlyweight::getToken(TokenType::ERROR, "Unterminated string: " + value);
         }
     }
     // Not a string literal, pass to next handler
@@ -160,7 +163,7 @@ std::shared_ptr<Token> UnknownHandler::handle() {
     std::string value;
     value += lexer.current();
     lexer.advance();
-    return std::make_shared<Token>(TokenType::ERROR, "Unknown character: " + value);
+    return TokenFlyweight::getToken(TokenType::ERROR, "Unknown character: " + value);
 };
 
 } // namespace DemoLang

@@ -2,7 +2,7 @@
  * @file include/ast.hpp
  * @brief Abstract Syntax Tree nodes and visitor interface.
  * @author The-XiaoBai
- * @date 2025/11/16
+ * @date 2026/01/31
 **/
 
 #pragma once
@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include "utils.hpp"
 
 
 namespace DemoLang {
@@ -148,6 +149,48 @@ public:
     explicit ErrorNode(const std::string& msg) : message(msg) {}
     void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
     const std::string& getMessage() const { return message; }
+};
+
+
+/**
+ * @brief Flyweight factory for AST nodes
+ */
+class ASTFlyweight {
+private:
+    static Utils::FlyweightFactory<std::string, ASTNode>& factory() {
+        return Utils::FlyweightFactory<std::string, ASTNode>::instance();
+    }
+    
+public:
+    static std::shared_ptr<ASTNode> getIdNode(const std::string& name) {
+        return factory().getFlyweight("id:" + name, [&name]() {
+            return std::make_shared<IdNode>(name);
+        });
+    }
+    
+    static std::shared_ptr<ASTNode> getIntNode(long long value) {
+        std::string key = "int:" + std::to_string(value);
+        return factory().getFlyweight(key, [value]() {
+            return std::make_shared<IntNode>(value);
+        });
+    }
+    
+    static std::shared_ptr<ASTNode> getFloatNode(long double value) {
+        std::string key = "float:" + std::to_string(value);
+        return factory().getFlyweight(key, [value]() {
+            return std::make_shared<FloatNode>(value);
+        });
+    }
+    
+    static std::shared_ptr<ASTNode> getStringNode(const std::string& value) {
+        std::string key = "string:" + value;
+        return factory().getFlyweight(key, [&value]() {
+            return std::make_shared<StringNode>(value);
+        });
+    }
+    
+    static void clearCache() { factory().clear(); }
+    static size_t cacheSize() { return factory().size(); }
 };
 
 } // namespace AST

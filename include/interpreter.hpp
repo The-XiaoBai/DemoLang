@@ -2,7 +2,7 @@
  * @file include/interpreter.hpp
  * @brief Basic declaration for interpreter.
  * @author The-XiaoBai
- * @date 2026/1/2
+ * @date 2026/01/31
 **/
 
 #pragma once
@@ -35,10 +35,10 @@ public:
     ) = 0;
 };
 
-// Factory for creating binary operators
+// Factory for creating binary operators using generic factory pattern
 class BinOperatorFactory {
 private:
-    static std::unordered_map<std::string, std::unique_ptr<BinOperator>> operators;
+    static Utils::Factory<std::string, BinOperator, std::function<std::unique_ptr<BinOperator>()>, std::shared_ptr<BaseType>, std::shared_ptr<BaseType>, std::shared_ptr<BaseType>> factory;
     
 public:
     static void initialize();

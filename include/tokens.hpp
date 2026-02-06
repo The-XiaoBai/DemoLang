@@ -2,7 +2,7 @@
  * @file include/tokens.hpp
  * @brief The token types used in the lexical analysis.
  * @author The-XiaoBai
- * @date 2026/01/03
+ * @date 2026/01/31
 **/
 
 #pragma once
@@ -11,6 +11,7 @@
 
 #include <string>
 #include <vector>
+#include "utils.hpp"
 
 
 namespace DemoLang {
@@ -57,6 +58,28 @@ struct Token {
     TokenType type;
     std::string value;
     Token(TokenType type, const std::string &value) : type(type), value(value) {}
+};
+
+
+/**
+ * @brief Flyweight factory for tokens
+ */
+class TokenFlyweight {
+private:
+    static Utils::FlyweightFactory<std::string, Token>& factory() {
+        return Utils::FlyweightFactory<std::string, Token>::instance();
+    }
+    
+public:
+    static std::shared_ptr<Token> getToken(TokenType type, const std::string& value = "") {
+        auto key = std::to_string(static_cast<int>(type)) + ":" + value;
+        return factory().getFlyweight(key, [type, &value]() {
+            return std::make_shared<Token>(type, value);
+        });
+    }
+    
+    static void clearCache() { factory().clear(); }
+    static size_t cacheSize() { return factory().size(); }
 };
 
 } // namespace Tokens
