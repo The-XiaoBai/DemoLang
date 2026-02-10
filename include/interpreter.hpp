@@ -23,30 +23,6 @@ namespace DemoLang {
 
 namespace InterpreterSpace {
 
-// Base binary operator class
-class BinOperator {
-public:
-    virtual ~BinOperator() = default;
-    virtual std::shared_ptr<BaseType> execute(
-        std::shared_ptr<BaseType> left, 
-        std::shared_ptr<BaseType> right
-    ) = 0;
-};
-
-// Factory for creating binary operators using generic factory pattern
-class BinOperatorFactory {
-private:
-    static Utils::Factory<std::string, BinOperator, std::function<std::unique_ptr<BinOperator>()>, std::shared_ptr<BaseType>, std::shared_ptr<BaseType>, std::shared_ptr<BaseType>> factory;
-    
-public:
-    static void initialize();
-    static std::shared_ptr<BaseType> execute(
-        const std::string& op, 
-        std::shared_ptr<BaseType> left, 
-        std::shared_ptr<BaseType> right
-    );
-};
-
 /**
  * @brief Environment to store variables in the context of execution
 **/
