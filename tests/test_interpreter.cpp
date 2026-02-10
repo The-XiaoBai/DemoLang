@@ -1,3 +1,8 @@
+/**
+ * @file tests/test_interpreter.cpp
+ * @brief Unit tests for the interpreter module.
+ **/
+
 #ifdef isTEST
 
 #include "test_framework.hpp"

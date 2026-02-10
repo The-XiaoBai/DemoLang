@@ -1,3 +1,8 @@
+/**
+ * @file tests/test_framework.hpp
+ * @brief Test framework for unit tests.
+ **/
+
 #pragma once
 #ifndef TEST_FRAMEWORK
 #define TEST_FRAMEWORK

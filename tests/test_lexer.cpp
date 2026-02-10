@@ -1,3 +1,8 @@
+/**
+ * @file tests/test_lexer.cpp
+ * @brief Unit tests for the lexer module.
+ **/
+
 #ifdef isTEST
 
 #include "test_framework.hpp"

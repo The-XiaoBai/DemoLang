@@ -1,8 +1,6 @@
 /**
  * @file src/lexer/handlers.cpp
  * @brief Handlers for lexer.
- * @author The-XiaoBai
- * @date 2026/01/31
 **/
 
 #include "lexer.hpp"
@@ -17,7 +15,26 @@ using namespace DemoLang::LexerSpace;
 
 namespace DemoLang {
 
-
+/**
+ * @brief Flyweight factory for tokens
+ */
+class TokenFlyweight {
+private:
+    static Utils::FlyweightFactory<std::string, Token>& factory() {
+        return Utils::FlyweightFactory<std::string, Token>::instance();
+    }
+    
+public:
+    static std::shared_ptr<Token> getToken(TokenType type, const std::string& value = "") {
+        auto key = std::to_string(static_cast<int>(type)) + ":" + value;
+        return factory().getFlyweight(key, [type, &value]() {
+            return std::make_shared<Token>(type, value);
+        });
+    }
+    
+    static void clearCache() { factory().clear(); }
+    static size_t cacheSize() { return factory().size(); }
+};
 
 std::shared_ptr<Token> EOFHandler::handle() {
     // Check if we've reached end of input

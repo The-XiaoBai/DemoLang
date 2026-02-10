@@ -1,8 +1,6 @@
 /**
  * @file src/main.cpp
  * @brief Program entry point.
- * @author The-XiaoBai
- * @date 2025/12/12
 **/
 
 
@@ -24,9 +22,7 @@ using namespace DemoLang::InterpreterSpace;
  * @brief REPL for DemoLang.
 **/
 static void repl() {
-    // Display welcome message
-    std::cout << "[DemoLang]" << std::endl;
-    std::cout << std::endl;
+    std::cout << "[DemoLang]" << std::endl << std::endl;
 
     // Main REPL loop
     while (true) {

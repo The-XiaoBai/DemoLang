@@ -1,8 +1,6 @@
 /**
  * @file src/interpreter/singles.cpp
- * @brief Visitor implementation for other single nodes.
- * @author The-XiaoBai
- * @date 2025/12/12
+ * @brief Visitor implementation for single nodes.
 **/
 
 #include "interpreter.hpp"

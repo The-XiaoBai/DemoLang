@@ -1,8 +1,6 @@
 /**
  * @file include/utils.hpp
  * @brief Utilities for DemoLang.
- * @author The-XiaoBai
- * @date 2026/01/31
 **/
 
 #pragma once

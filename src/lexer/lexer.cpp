@@ -1,8 +1,6 @@
 /**
  * @file src/lexer/lexer.cpp
  * @brief Transform input to tokens.
- * @author The-XiaoBai
- * @date 2026/01/03
 **/
 
 #include "lexer.hpp"

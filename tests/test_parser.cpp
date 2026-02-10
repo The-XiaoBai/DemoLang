@@ -1,3 +1,8 @@
+/**
+ * @file tests/test_parser.cpp
+ * @brief Unit tests for the parser module.
+ **/
+
 #ifdef isTEST
 
 #include "test_framework.hpp"

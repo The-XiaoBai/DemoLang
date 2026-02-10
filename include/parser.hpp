@@ -1,8 +1,6 @@
 /**
  * @file include/parser.hpp
  * @brief Parse tokens into an Abstract Syntax Tree (AST).
- * @author The-XiaoBai
- * @date 2025/11/16
 **/
 
 #pragma once

@@ -1,8 +1,6 @@
 /**
  * @file include/lexer.hpp
  * @brief Tokenizing input to tokens.
- * @author The-XiaoBai
- * @date 2026/01/03
 **/
 
 #pragma once

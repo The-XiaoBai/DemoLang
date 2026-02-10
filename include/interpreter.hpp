@@ -1,8 +1,6 @@
 /**
  * @file include/interpreter.hpp
  * @brief Basic declaration for interpreter.
- * @author The-XiaoBai
- * @date 2026/01/31
 **/
 
 #pragma once

@@ -1,8 +1,6 @@
 /**
  * @file src/parser/parser.cpp
- * @brief Transform tokens into an Abstract Syntax Tree (AST).
- * @author The-XiaoBai
- * @date 2025/11/16
+ * @brief Transform tokens into AST.
 **/
 
 #include "ast.hpp"

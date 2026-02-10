@@ -1,8 +1,6 @@
 /**
  * @file src/interpreter/interpreter.cpp
  * @brief Interpreter implementation.
- * @author The-XiaoBai
- * @date 2025/12/12
 **/
 
 #include "interpreter.hpp"

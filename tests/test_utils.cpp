@@ -1,3 +1,8 @@
+/**
+ * @file tests/test_utils.cpp
+ * @brief Unit tests for the utils module.
+ **/
+
 #ifdef isTEST
 
 #include "test_framework.hpp"

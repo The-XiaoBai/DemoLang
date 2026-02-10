@@ -1,8 +1,6 @@
 /**
  * @file src/parser/operators.cpp
  * @brief Parser implementation for operators.
- * @author The-XiaoBai
- * @date 2025/11/16
 **/
 
 #include "parser.hpp"

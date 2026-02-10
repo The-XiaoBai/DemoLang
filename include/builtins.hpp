@@ -1,8 +1,6 @@
 /**
  * @file include/builtins.hpp
  * @brief Some built-in types.
- * @author The-XiaoBai
- * @date 2025/12/12
 **/
 
 #pragma once
