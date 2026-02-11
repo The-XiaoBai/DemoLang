@@ -127,17 +127,42 @@ private:
     }
     
     std::shared_ptr<ASTNode> createParenthesizedNode(const Token& token, ParserSpace::Parser& parser) {
+        // Advance past the opening parenthesis
         parser.advance();
+        
+        // Check if we've reached end of input prematurely
+        if (parser.current().type == TokenType::END) {
+            return std::make_shared<ErrorNode>("Unexpected end of input, expected closing parenthesis");
+        }
+        
         auto expr = parser.parseExpression();
-        if (!expr) return std::make_shared<ErrorNode>("Empty expression in parentheses");        
-        if (!parser.match(TokenType::OPERATOR, ")"))
-            return std::make_shared<ErrorNode>("Expected closing parenthesis");
+        if (!expr) {
+            // Check if we have an empty expression (immediately followed by ')')
+            if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
+                return std::make_shared<ErrorNode>("Empty parentheses are not allowed");
+            }
+            return std::make_shared<ErrorNode>("Invalid expression in parentheses");
+        }        
+        
+        // Check for closing parenthesis
+        if (!parser.match(TokenType::OPERATOR, ")")) {
+            // Provide more specific error message based on current token
+            if (parser.current().type == TokenType::END) {
+                return std::make_shared<ErrorNode>("Unexpected end of input, expected closing parenthesis");
+            } else {
+                return std::make_shared<ErrorNode>("Expected closing parenthesis, found: " + parser.current().value);
+            }
+        }
         return expr;
     }
 };
 
 std::shared_ptr<ASTNode> ParserSpace::PrimaryParser::handle() {
     Token token = parser.current();
+    // Don't advance here for '(' tokens, let createParenthesizedNode handle it
+    if (token.type == TokenType::OPERATOR && token.value == "(") {
+        return ASTNodeFactory::instance().createNode(token, parser);
+    }
     parser.advance();
     return ASTNodeFactory::instance().createNode(token, parser);
 }
