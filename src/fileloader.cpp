@@ -8,7 +8,6 @@
 #include "interpreter.hpp"
 #include <iostream>
 #include <fstream>
-#include <sstream>
 
 using namespace DemoLang;
 using namespace DemoLang::Tokens;
@@ -28,34 +27,33 @@ static void executeFile(const std::string& filename) {
         std::ifstream file(filename);
         if (!file.is_open()) throw std::runtime_error("Cannot open file: " + filename);
         
-        std::string content((std::istreambuf_iterator<char>(file)),
-                           std::istreambuf_iterator<char>());
-        file.close();
-        
-        // Split content into lines
-        std::istringstream stream(content);
         std::string line;
         std::string lastResult;
+        int lineNumber = 0;
         
         Lexer& lexer = Lexer::instance();
         Parser& parser = Parser::instance();
         Interpreter& interpreter = Interpreter::instance();
         
-        // Process each line as separate expression
-        while (std::getline(stream, line)) {
+        while (std::getline(file, line)) {
+            lineNumber++;
             // Skip empty lines
             if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos) {
                 continue;
             }
             
-            // Execute current line
-            auto tokens = lexer.tokenize(line);
-            auto ast = parser.parse(tokens);
-            lastResult = interpreter.interpret(ast);
+            try {
+                auto tokens = lexer.tokenize(line);
+                auto ast = parser.parse(tokens);
+                lastResult = interpreter.interpret(ast);
+            } catch (const std::exception& e) {
+                std::cerr << "Error at line " << lineNumber << ": " << e.what() << std::endl;
+            }
         }
         
-        // Only print last result of the file execution
-        std::cout << lastResult << std::endl;
+        if (!lastResult.empty()) {
+            std::cout << lastResult << std::endl;
+        }
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
