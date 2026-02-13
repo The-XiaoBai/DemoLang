@@ -11,8 +11,10 @@
 DemoLang is a simple interpreted programming language. Start the REPL:
 
 ```bash
-./DemoLang          # Linux/macOS
-.\DemoLang.exe      # Windows
+./Shell          # Run REPL at Linux/macOS
+.\Shell.exe      # Run REPL at Windows
+./FileLoader filename      # Execute file at Linux/macOS
+.\FileLoader.exe filename  # Execute file at Windows
 ```
 
 ```
@@ -156,3 +158,18 @@ is_truthy = !num                # 0 (false)
 empty = 0
 is_falsy = !empty               # 1 (true)
 ```
+
+### File Execution
+Save the following code to a file named `demo` for example:
+```
+x = 10
+y = 20
+result = x + y
+name = "DemoLang"
+greeting = "Hello, " + name
+```
+Then run the file loader:
+```
+./FileLoader demo
+```
+The output should be `Hello, DemoLang` in the end.
