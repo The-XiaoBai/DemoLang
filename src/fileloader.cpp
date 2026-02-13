@@ -66,12 +66,6 @@ static void executeFile(const std::string& filename) {
  * @param argv Argument vector.
  */
 void load(int argc, char* argv[]) {
-    std::cout << "$[Argument count]: " << argc << std::endl;
-    for (int i = 0; i < argc; i++) {
-        std::cout << "$[Argument-" << i << "]: " << argv[i] << std::endl;
-    }
-    std::cout << std::endl << std::endl;
-
     if (argc == 0) {
         std::cerr << "Environment does not support!" << std::endl;
     } else if (argc == 1) {

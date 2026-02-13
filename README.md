@@ -88,8 +88,10 @@ DemoLang/
 
 3. **Run interpreter**:
    ```bash
-   ./DemoLang          # Linux/macOS
-   .\DemoLang.exe      # Windows
+   ./Shell          # Run REPL at Linux/macOS
+   .\Shell.exe      # Run REPL at Windows
+   ./FileLoader filename      # Execute file at Linux/macOS
+   .\FileLoader.exe filename  # Execute file at Windows
    ```
 
 4. **Run tests**:
