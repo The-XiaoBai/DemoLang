@@ -28,7 +28,6 @@ void InterpreterSpace::Environment::set(const std::string& name, const BaseType&
     scope[name] = value.clone();
 }
 
-
 std::string InterpreterSpace::Interpreter::interpret(const std::shared_ptr<AST::ASTNode>& node) {
     // Handle null AST node
     if (!node) {

@@ -31,6 +31,7 @@ public:
     virtual void visit(class FloatNode& node) = 0;
     virtual void visit(class StringNode& node) = 0;
     virtual void visit(class ErrorNode& node) = 0;
+    virtual void visit(class FunctionCallNode& node) = 0;
 };
 
 
@@ -147,6 +148,20 @@ public:
     explicit ErrorNode(const std::string& msg) : message(msg) {}
     void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
     const std::string& getMessage() const { return message; }
+};
+
+
+class FunctionCallNode : public ASTNode {
+private:
+    std::string name;
+    std::vector<std::shared_ptr<ASTNode>> args;
+
+public:
+    FunctionCallNode(const std::string& funcName, std::vector<std::shared_ptr<ASTNode>> arguments)
+        : name(funcName), args(std::move(arguments)) {}
+    void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
+    const std::string& getName() const { return name; }
+    const std::vector<std::shared_ptr<ASTNode>>& getArgs() const { return args; }
 };
 
 } // namespace AST

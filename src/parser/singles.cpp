@@ -45,6 +45,10 @@ public:
         });
     }
     
+    static std::shared_ptr<ASTNode> getFunctionCallNode(const std::string& name, const std::vector<std::shared_ptr<ASTNode>>& args) {
+        return std::make_shared<FunctionCallNode>(name, args);
+    }
+    
     static void clearCache() { factory().clear(); }
     static size_t cacheSize() { return factory().size(); }
 };
@@ -159,10 +163,55 @@ private:
 
 std::shared_ptr<ASTNode> ParserSpace::PrimaryParser::handle() {
     Token token = parser.current();
+    
+    // Handle function calls: identifier followed by '('
+    if (token.type == TokenType::IDENTIFIER) {
+        std::string funcName = token.value;
+        parser.advance(); // Consume identifier
+        
+        // Check if next token is '(' for function call
+        if (parser.current().type == TokenType::OPERATOR && parser.current().value == "(") {
+            parser.advance(); // Consume '('
+            
+            // Parse arguments
+            std::vector<std::shared_ptr<ASTNode>> args;
+            
+            // Handle empty argument list
+            if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
+                parser.advance(); // Consume ')'
+                return ASTFlyweight::getFunctionCallNode(funcName, args);
+            }
+            
+            // Parse first argument
+            args.push_back(parser.parseExpression());
+            
+            // Parse remaining arguments
+            while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
+                parser.advance(); // Consume ','
+                if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
+                    return std::make_shared<ErrorNode>("Unexpected ',' before ')'");
+                }
+                args.push_back(parser.parseExpression());
+            }
+            
+            // Expect closing ')'
+            if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
+                parser.advance(); // Consume ')'
+                return ASTFlyweight::getFunctionCallNode(funcName, args);
+            } else {
+                return std::make_shared<ErrorNode>("Expected ')' in function call");
+            }
+        }
+        
+        // Not a function call, return identifier
+        return ASTFlyweight::getIdNode(funcName);
+    }
+    
     // Don't advance here for '(' tokens, let createParenthesizedNode handle it
     if (token.type == TokenType::OPERATOR && token.value == "(") {
         return ASTNodeFactory::instance().createNode(token, parser);
     }
+    
     parser.advance();
     return ASTNodeFactory::instance().createNode(token, parser);
 }

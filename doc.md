@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Getting Started](#getting-started)
 - [Language Reference](#language-reference)
+- [Built-in Functions](#built-in-functions)
 - [Error Handling](#error-handling)
 - [Examples](#examples)
 
@@ -91,6 +92,39 @@ x = 3.14         # Reassign to different type
 5. `==`, `!=`
 6. `&`, `|`
 7. `=`
+
+## Built-in Functions
+
+DemoLang provides several built-in functions for common operations:
+
+### print
+
+Prints values to the console, separated by spaces, followed by a newline.
+
+```
+print(42)                    # Output: 42
+print(3.14)                  # Output: 3.140000
+print("Hello")               # Output: Hello
+print(1, 2.5, "test")        # Output: 1 2.500000 test
+```
+
+### exit
+
+Exits the program with an optional exit code (default: 0).
+
+```
+exit()                       # Exit with code 0
+exit(1)                      # Exit with code 1
+```
+
+### query
+
+Reads a line of input from the console and returns it as a string.
+
+```
+name = query()               # Reads user input
+print("Hello, " + name)      # Greets the user
+```
 
 ## Error Handling
 

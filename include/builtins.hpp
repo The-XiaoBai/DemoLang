@@ -9,6 +9,8 @@
 
 #include <any>
 #include <iostream>
+#include <unordered_map>
+#include <functional>
 
 
 namespace DemoLang {
@@ -97,6 +99,40 @@ public:
         return std::make_shared<Exception>(value);
     }
 };
+
+inline std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> getBuiltins() {
+    std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> builtins;
+    builtins["print"] = [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
+        for (size_t i = 0; i < args.size(); ++i) {
+            if (auto str = dynamic_cast<String*>(args[i].get())) {
+                std::cout << std::any_cast<std::string>(str->getValue());
+            } else if (auto integer = dynamic_cast<Integer*>(args[i].get())) {
+                std::cout << std::any_cast<long long>(integer->getValue());
+            } else if (auto flo = dynamic_cast<Float*>(args[i].get())) {
+                std::cout << std::any_cast<long double>(flo->getValue());
+            }
+            if (i < args.size() - 1) std::cout << " ";
+        }
+        std::cout << std::endl;
+        return std::make_shared<String>("");
+    };
+    builtins["exit"] = [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
+        int code = 0;
+        if (!args.empty()) {
+            if (auto integer = dynamic_cast<Integer*>(args[0].get())) {
+                code = static_cast<int>(std::any_cast<long long>(integer->getValue()));
+            }
+        }
+        exit(code);
+        return std::make_shared<String>("");
+    };
+    builtins["query"] = [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
+        std::string input;
+        std::getline(std::cin, input);
+        return std::make_shared<String>(input);
+    };
+    return builtins;
+}
 
 } // namespace ValueTypes
 

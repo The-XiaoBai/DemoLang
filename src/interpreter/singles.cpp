@@ -8,6 +8,25 @@
 
 namespace DemoLang {
 
+void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
+    builtins = ValueTypes::getBuiltins();
+    
+    // Evaluate arguments
+    std::vector<std::shared_ptr<BaseType>> args;
+    for (const auto& arg : node.getArgs()) {
+        arg->accept(*this);
+        args.push_back(result);
+    }
+    
+    // Check if function is built-in
+    auto it = builtins.find(node.getName());
+    if (it != builtins.end()) {
+        result = it->second(args);
+    } else {
+        result = std::make_shared<Exception>("Unknown function: " + node.getName());
+    }
+}
+
 void InterpreterSpace::Interpreter::visit(IdNode& node) {
     result = env.has(node.getName()) ? env.get(node.getName())
         : std::make_shared<Exception>("Undefined variable: " + node.getName());
