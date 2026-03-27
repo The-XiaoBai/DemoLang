@@ -126,6 +126,64 @@ name = query()               # Reads user input
 print("Hello, " + name)      # Greets the user
 ```
 
+## User-Defined Functions
+
+DemoLang supports user-defined functions with the following syntax:
+
+### Function Definition
+
+Functions are defined using the `func = (parameters) { body }` syntax:
+
+```
+# Basic function without parameters
+greet = () { @ "Hello, World!" }
+
+# Function with parameters
+add = (a, b) { @ a + b }
+
+# Function with default parameters
+greet = (name = "World") { @ "Hello, " + name + "!" }
+```
+
+### Return Values
+
+Functions use the `@` operator to return values:
+
+```
+square = (x) { @ x * x }
+result = square(5)           # result = 25
+```
+
+### Function Calls
+
+Functions are called using positional arguments:
+
+```
+# Call without arguments
+greet()                      # Output: Hello, World!
+
+# Call with arguments
+add(10, 20)                  # Returns 30
+
+# Override default parameter
+greet("Alice")               # Returns: Hello, Alice!
+```
+
+### Default Parameters
+
+Functions can specify default values for parameters:
+
+```
+# Function with default parameter
+power = (base, exponent = 2) { @ base ^ exponent }
+
+# Call with default exponent
+power(3)                     # Returns 9 (3^2)
+
+# Override default exponent
+power(2, 3)                  # Returns 8 (2^3)
+```
+
 ## Error Handling
 
 **Lexer Errors**: Invalid characters, unterminated strings, malformed numbers, etc.

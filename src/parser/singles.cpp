@@ -49,6 +49,10 @@ public:
         return std::make_shared<FunctionCallNode>(name, args);
     }
     
+    static std::shared_ptr<ASTNode> getFunctionDefNode(const std::string& name, const std::vector<std::string>& params, const std::vector<std::shared_ptr<ASTNode>>& defaults, std::shared_ptr<ASTNode> body) {
+        return std::make_shared<FunctionDefNode>(name, params, defaults, body);
+    }
+    
     static void clearCache() { factory().clear(); }
     static size_t cacheSize() { return factory().size(); }
 };
@@ -182,16 +186,41 @@ std::shared_ptr<ASTNode> ParserSpace::PrimaryParser::handle() {
                 return ASTFlyweight::getFunctionCallNode(funcName, args);
             }
             
-            // Parse first argument
-            args.push_back(parser.parseExpression());
-            
+            // Parse first argument (support a=1 syntax)
+            if (parser.current().type == TokenType::IDENTIFIER) {
+                std::string paramName = parser.current().value;
+                parser.advance(); // Consume parameter name
+                if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
+                    parser.advance(); // Consume '='
+                    args.push_back(parser.parseExpression());
+                } else {
+                    // Not a named parameter, treat as expression
+                    args.push_back(ASTFlyweight::getIdNode(paramName));
+                }
+            } else {
+                args.push_back(parser.parseExpression());
+            }
+
             // Parse remaining arguments
             while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
                 parser.advance(); // Consume ','
                 if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
                     return std::make_shared<ErrorNode>("Unexpected ',' before ')'");
                 }
-                args.push_back(parser.parseExpression());
+                // Support a=1 syntax for named parameters
+                if (parser.current().type == TokenType::IDENTIFIER) {
+                    std::string paramName = parser.current().value;
+                    parser.advance(); // Consume parameter name
+                    if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
+                        parser.advance(); // Consume '='
+                        args.push_back(parser.parseExpression());
+                    } else {
+                        // Not a named parameter, treat as expression
+                        args.push_back(ASTFlyweight::getIdNode(paramName));
+                    }
+                } else {
+                    args.push_back(parser.parseExpression());
+                }
             }
             
             // Expect closing ')'

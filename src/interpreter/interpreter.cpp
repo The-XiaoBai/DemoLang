@@ -28,12 +28,29 @@ void InterpreterSpace::Environment::set(const std::string& name, const BaseType&
     scope[name] = value.clone();
 }
 
+bool InterpreterSpace::Environment::hasFunction(const std::string& name) const {
+    return functions.find(name) != functions.end();
+}
+
+std::shared_ptr<ASTNode> InterpreterSpace::Environment::getFunction(const std::string& name) const {
+    auto it = functions.find(name);
+    if (it != functions.end()) return it->second;
+    return nullptr;
+}
+
+void InterpreterSpace::Environment::setFunction(const std::string& name, std::shared_ptr<ASTNode> func) {
+    functions[name] = func;
+}
+
 std::string InterpreterSpace::Interpreter::interpret(const std::shared_ptr<AST::ASTNode>& node) {
     // Handle null AST node
     if (!node) {
         auto result = std::make_shared<Exception>("Null AST Node");
         return std::any_cast<std::string>(result->getValue());
     }
+
+    // Reset return flag for top-level interpretation
+    hasReturnValue = false;
 
     // Start AST traversal using visitor pattern
     node->accept(*this);

@@ -29,6 +29,7 @@ namespace InterpreterSpace {
 class Environment {
 private:
     std::unordered_map<std::string, std::shared_ptr<BaseType>> scope;
+    std::unordered_map<std::string, std::shared_ptr<ASTNode>> functions;
 
 public:
     Environment() = default;
@@ -36,6 +37,12 @@ public:
     bool has(const std::string& name) const;
     std::shared_ptr<BaseType> get(const std::string& name) const;
     void set(const std::string& name, const BaseType& value);
+    bool hasFunction(const std::string& name) const;
+    std::shared_ptr<ASTNode> getFunction(const std::string& name) const;
+    void setFunction(const std::string& name, std::shared_ptr<ASTNode> func);
+    
+    // Allow Interpreter to access scope directly
+    friend class Interpreter;
 };
 
 
@@ -49,6 +56,7 @@ private:
     Environment env = Environment();
     std::shared_ptr<BaseType> result;
     std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> builtins;
+    bool hasReturnValue = false;
 
 public:
     Interpreter() = default;
@@ -62,6 +70,8 @@ public:
     void visit(StringNode& node) override;
     void visit(ErrorNode& node) override;
     void visit(FunctionCallNode& node) override;
+    void visit(FunctionDefNode& node) override;
+    void visit(ReturnNode& node) override;
 };
 
 } // namespace InterpreterSpace

@@ -32,6 +32,8 @@ public:
     virtual void visit(class StringNode& node) = 0;
     virtual void visit(class ErrorNode& node) = 0;
     virtual void visit(class FunctionCallNode& node) = 0;
+    virtual void visit(class FunctionDefNode& node) = 0;
+    virtual void visit(class ReturnNode& node) = 0;
 };
 
 
@@ -162,6 +164,34 @@ public:
     void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
     const std::string& getName() const { return name; }
     const std::vector<std::shared_ptr<ASTNode>>& getArgs() const { return args; }
+};
+
+class FunctionDefNode : public ASTNode {
+private:
+    std::string name;
+    std::vector<std::string> params;
+    std::vector<std::shared_ptr<ASTNode>> paramDefaults;
+    std::shared_ptr<ASTNode> body;
+
+public:
+    FunctionDefNode(const std::string& funcName, std::vector<std::string> parameters, 
+                   std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody)
+        : name(funcName), params(std::move(parameters)), paramDefaults(std::move(defaults)), body(std::move(functionBody)) {}
+    void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
+    const std::string& getName() const { return name; }
+    const std::vector<std::string>& getParams() const { return params; }
+    const std::vector<std::shared_ptr<ASTNode>>& getParamDefaults() const { return paramDefaults; }
+    ASTNode* getBody() const { return body.get(); }
+};
+
+class ReturnNode : public ASTNode {
+private:
+    std::shared_ptr<ASTNode> value;
+
+public:
+    ReturnNode(std::shared_ptr<ASTNode> returnValue) : value(std::move(returnValue)) {}
+    void accept(ASTVisitor& visitor) override { visitor.visit(*this); }
+    ASTNode* getValue() const { return value.get(); }
 };
 
 } // namespace AST

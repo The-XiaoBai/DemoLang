@@ -106,13 +106,13 @@ public:
 class TestErrors : public LexerTestCase {
 public:
     void run() override {
-        auto tokens = lexer->tokenize("@#");
+        auto tokens = lexer->tokenize("#");
 
         auto token1 = tokens[0];
         auto token2 = tokens[1];
 
         assert(token1.type == TokenType::ERROR);
-        assert(token1.value == "Unknown character: " + std::string(1, '@'));
+        assert(token1.value == "Unknown character: " + std::string(1, '#'));
         assert(token2.type == TokenType::END);
     }
 };
