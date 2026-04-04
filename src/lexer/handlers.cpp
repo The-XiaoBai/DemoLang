@@ -15,6 +15,8 @@ using namespace DemoLang::LexerSpace;
 
 namespace DemoLang {
 
+namespace LexerSpace {
+
 /**
  * @brief Flyweight factory for tokens
  */
@@ -182,5 +184,7 @@ std::shared_ptr<Token> UnknownHandler::handle() {
     lexer.advance();
     return TokenFlyweight::getToken(TokenType::ERROR, "Unknown character: " + value);
 };
+
+} // namespace LexerSpace
 
 } // namespace DemoLang

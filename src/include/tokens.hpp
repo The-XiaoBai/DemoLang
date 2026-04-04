@@ -1,5 +1,5 @@
 /**
- * @file include/tokens.hpp
+ * @file src/include/tokens.hpp
  * @brief The token types used in the lexical analysis.
 **/
 

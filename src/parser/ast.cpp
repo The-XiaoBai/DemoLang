@@ -1,0 +1,145 @@
+/**
+ * @file src/parser/ast.cpp
+ * @brief Abstract syntax tree implementation.
+**/
+
+#include "ast.hpp"
+
+namespace DemoLang {
+namespace AST {
+
+UnaryOpNode::UnaryOpNode(std::string op, std::shared_ptr<ASTNode> operand)
+    : op(std::move(op)), operand(std::move(operand)) {}
+
+void UnaryOpNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::string& UnaryOpNode::getOp() const {
+    return op;
+}
+
+ASTNode* UnaryOpNode::getOperand() const {
+    return operand.get();
+}
+
+BinaryOpNode::BinaryOpNode(std::string op, std::shared_ptr<ASTNode> left, std::shared_ptr<ASTNode> right)
+    : op(std::move(op)), left(std::move(left)), right(std::move(right)) {}
+
+void BinaryOpNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::string& BinaryOpNode::getOp() const {
+    return op;
+}
+
+ASTNode* BinaryOpNode::getLeft() const {
+    return left.get();
+}
+
+ASTNode* BinaryOpNode::getRight() const {
+    return right.get();
+}
+
+IdNode::IdNode(const std::string& id) : name(id) {}
+
+void IdNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::string& IdNode::getName() const {
+    return name;
+}
+
+IntNode::IntNode(long long val) : value(val) {}
+
+void IntNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+long long IntNode::getValue() const {
+    return value;
+}
+
+FloatNode::FloatNode(long double val) : value(val) {}
+
+void FloatNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+long double FloatNode::getValue() const {
+    return value;
+}
+
+StringNode::StringNode(const std::string& val) : value(val) {}
+
+void StringNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::string& StringNode::getValue() const {
+    return value;
+}
+
+ErrorNode::ErrorNode(const std::string& msg) : message(msg) {}
+
+void ErrorNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::string& ErrorNode::getMessage() const {
+    return message;
+}
+
+FunctionCallNode::FunctionCallNode(const std::string& funcName, std::vector<std::shared_ptr<ASTNode>> arguments)
+    : name(funcName), args(std::move(arguments)) {}
+
+void FunctionCallNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::string& FunctionCallNode::getName() const {
+    return name;
+}
+
+const std::vector<std::shared_ptr<ASTNode>>& FunctionCallNode::getArgs() const {
+    return args;
+}
+
+FunctionDefNode::FunctionDefNode(const std::string& funcName, std::vector<std::string> parameters,
+                                 std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody)
+    : name(funcName), params(std::move(parameters)), paramDefaults(std::move(defaults)), body(std::move(functionBody)) {}
+
+void FunctionDefNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::string& FunctionDefNode::getName() const {
+    return name;
+}
+
+const std::vector<std::string>& FunctionDefNode::getParams() const {
+    return params;
+}
+
+const std::vector<std::shared_ptr<ASTNode>>& FunctionDefNode::getParamDefaults() const {
+    return paramDefaults;
+}
+
+ASTNode* FunctionDefNode::getBody() const {
+    return body.get();
+}
+
+ReturnNode::ReturnNode(std::shared_ptr<ASTNode> returnValue) : value(std::move(returnValue)) {}
+
+void ReturnNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+ASTNode* ReturnNode::getValue() const {
+    return value.get();
+}
+
+} // namespace AST
+} // namespace DemoLang

@@ -8,6 +8,14 @@
 
 namespace DemoLang {
 
+namespace InterpreterSpace {
+
+Environment::Environment() = default;
+
+Interpreter::Interpreter() = default;
+
+} // namespace InterpreterSpace
+
 bool InterpreterSpace::Environment::has(const std::string& name) const {
     // Check if variable exists in current scope
     return scope.find(name) != scope.end();

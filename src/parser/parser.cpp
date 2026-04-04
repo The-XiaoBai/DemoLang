@@ -10,6 +10,25 @@
 
 namespace DemoLang {
 
+namespace ParserSpace {
+
+Parser::Parser() : current_pos(0) {}
+
+BaseParser::BaseParser(Parser& parser) : parser(parser) {}
+
+UnaryParser::UnaryParser(Parser& parser, std::vector<std::string> operators)
+    : BaseParser(parser), operators(operators) {}
+
+BinaryParser::BinaryParser(Parser& parser, std::vector<std::string> operators)
+    : BaseParser(parser), operators(operators) {}
+
+PrimaryParser::PrimaryParser(Parser& parser) : BaseParser(parser) {}
+
+} // namespace ParserSpace
+
+Token ParserSpace::Parser::current() const { return current_pos < tokens.size() ? tokens[current_pos] : Token(TokenType::END, ""); }
+void ParserSpace::Parser::advance() { if (current_pos < tokens.size()) current_pos++; }
+
 bool ParserSpace::Parser::match(TokenType type, const std::string& value) {
     // Check if current token matches expected type and value
     Token curr = current();

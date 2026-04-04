@@ -8,6 +8,8 @@
 
 namespace DemoLang {
 
+namespace ParserSpace {
+
 /**
  * @brief Flyweight factory for AST nodes
  */
@@ -244,5 +246,7 @@ std::shared_ptr<ASTNode> ParserSpace::PrimaryParser::handle() {
     parser.advance();
     return ASTNodeFactory::instance().createNode(token, parser);
 }
+
+} // namespace ParserSpace
 
 } // namespace DemoLang

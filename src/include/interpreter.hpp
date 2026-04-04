@@ -1,5 +1,5 @@
 /**
- * @file include/interpreter.hpp
+ * @file src/include/interpreter.hpp
  * @brief Basic declaration for interpreter.
 **/
 
@@ -32,7 +32,7 @@ private:
     std::unordered_map<std::string, std::shared_ptr<ASTNode>> functions;
 
 public:
-    Environment() = default;
+    Environment();
     
     bool has(const std::string& name) const;
     std::shared_ptr<BaseType> get(const std::string& name) const;
@@ -59,7 +59,7 @@ private:
     bool hasReturnValue = false;
 
 public:
-    Interpreter() = default;
+    Interpreter();
     std::string interpret(const std::shared_ptr<ASTNode>& node);
     
     void visit(UnaryOpNode& node) override;
