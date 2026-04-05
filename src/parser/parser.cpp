@@ -53,6 +53,33 @@ std::shared_ptr<ASTNode> ParserSpace::Parser::parse(const std::vector<Token> &to
 }
 
 std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpression() {
+    // Parse sequence of statements separated by ';'
+    std::vector<std::shared_ptr<ASTNode>> statements;
+    
+    // Parse first expression
+    auto firstExpr = parseExpressionInternal();
+    statements.push_back(firstExpr);
+    
+    // Parse additional statements separated by ';'
+    while (current().type == TokenType::OPERATOR && current().value == ";") {
+        advance(); // Consume ';'
+        if (current().type == TokenType::END) {
+            // Trailing semicolon at end
+            break;
+        }
+        auto nextExpr = parseExpressionInternal();
+        statements.push_back(nextExpr);
+    }
+    
+    // Return single statement or sequence node
+    if (statements.size() == 1) {
+        return statements[0];
+    } else {
+        return std::make_shared<StatementSequenceNode>(statements);
+    }
+}
+
+std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpressionInternal() {
     // Create operator precedence chain using chain of responsibility pattern
     // Operators are added in order of precedence (lowest to highest)
     Utils::Chain<ASTNode> chain;

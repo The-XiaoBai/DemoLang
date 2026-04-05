@@ -382,6 +382,43 @@ std::shared_ptr<ASTNode> ParserSpace::PrimaryParser::handle() {
         return std::make_shared<IfNode>(conditions, bodies, elseBody);
     }
 
+    // Handle while statement: $(condition){body}
+    if (token.type == TokenType::OPERATOR && token.value == "$") {
+        parser.advance(); // Consume '$'
+        
+        // Parse condition
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != "(")
+            return std::make_shared<ErrorNode>("Expected '(' after '$'");
+        parser.advance(); // Consume '('
+        auto condition = parser.parseExpression();
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
+            return std::make_shared<ErrorNode>("Expected ')' in while condition");
+        parser.advance(); // Consume ')'
+        
+        // Parse body
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != "{")
+            return std::make_shared<ErrorNode>("Expected '{' for while body");
+        parser.advance(); // Consume '{'
+        auto body = parser.parseExpression();
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != "}")
+            return std::make_shared<ErrorNode>("Expected '}' for while body");
+        parser.advance(); // Consume '}'
+        
+        return std::make_shared<WhileNode>(condition, body);
+    }
+
+    // Handle break statement: ##
+    if (token.type == TokenType::OPERATOR && token.value == "##") {
+        parser.advance(); // Consume '##'
+        return std::make_shared<BreakNode>();
+    }
+
+    // Handle continue statement: #
+    if (token.type == TokenType::OPERATOR && token.value == "#") {
+        parser.advance(); // Consume '#'
+        return std::make_shared<ContinueNode>();
+    }
+
     // Handle lambda call: (params){body}(args)
     if (token.type == TokenType::OPERATOR && token.value == "(") {
         auto lambda = ASTFlyweight::createParenthesizedNode(token, parser);

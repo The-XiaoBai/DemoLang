@@ -41,6 +41,7 @@ public:
     bool match(TokenType type, const std::string& value);
     std::shared_ptr<ASTNode> parse(const std::vector<Token> &tokens);
     std::shared_ptr<ASTNode> parseExpression();
+    std::shared_ptr<ASTNode> parseExpressionInternal();
 };
 
 

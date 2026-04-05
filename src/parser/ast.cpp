@@ -179,5 +179,43 @@ ASTNode* IfNode::getElseBody() const {
     return elseBody.get();
 }
 
+WhileNode::WhileNode(std::shared_ptr<ASTNode> cond, std::shared_ptr<ASTNode> loopBody)
+    : condition(std::move(cond)), body(std::move(loopBody)) {}
+
+void WhileNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+ASTNode* WhileNode::getCondition() const {
+    return condition.get();
+}
+
+ASTNode* WhileNode::getBody() const {
+    return body.get();
+}
+
+BreakNode::BreakNode() {}
+
+void BreakNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+ContinueNode::ContinueNode() {}
+
+void ContinueNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+StatementSequenceNode::StatementSequenceNode(std::vector<std::shared_ptr<ASTNode>> stmts)
+    : statements(std::move(stmts)) {}
+
+void StatementSequenceNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::vector<std::shared_ptr<ASTNode>>& StatementSequenceNode::getStatements() const {
+    return statements;
+}
+
 } // namespace AST
 } // namespace DemoLang

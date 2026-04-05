@@ -42,7 +42,7 @@ DemoLang is a simple interpreted programming language. Start the REPL:
 
 **Identifiers**: Variable names with alphanumeric characters and underscores: `x`, `variable_name`, `value123`
 
-**Operators**: `+ - * / == != > < >= <= = ! & | ( ) @`
+**Operators**: `+ - * / == != > < >= <= = ! & | ( ) @ ;`
 
 ### Data Types
 
@@ -108,6 +108,85 @@ y = 15
 ?(y > 10) { print("A") } ??(y > 5) { print("B") } : { print("C") }
 # Output: A
 ```
+
+#### While Loop
+
+DemoLang supports while loops with break and continue statements:
+
+```
+# Basic while loop
+$(condition) { body }
+
+# Break statement (exits loop)
+$(condition) { ## }
+
+# Continue statement (skips to next iteration)
+$(condition) { # }
+```
+
+**Syntax**:
+- `$` starts a while loop
+- Condition is evaluated before each iteration
+- Loop continues while condition is truthy
+- `##` (break) exits the loop immediately
+- `#` (continue) skips remaining body and re-evaluates condition
+
+```
+# Simple counter
+i = 1
+$(i <= 5) { print(i); i = i + 1 }
+# Output: 1 2 3 4 5
+
+# Break example
+j = 1
+$(j <= 10) { 
+    ?(j > 5) { ## }  # Break when j > 5
+    print(j); j = j + 1 
+}
+# Output: 1 2 3 4 5
+
+# Continue example
+k = 0
+$(k < 10) {
+    k = k + 1
+    ?(k % 2 == 0) { # }  # Skip even numbers
+    print(k)
+}
+# Output: 1 3 5 7 9
+```
+
+### Statement Separation
+
+DemoLang uses semicolon (`;`) to separate multiple statements on a single line or within a block:
+
+```
+# Multiple statements on one line with semicolon
+x = 10; y = 20; print(x + y)  # Output: 30
+
+# Statements in control flow blocks
+counter = 0
+$(counter < 3) { 
+    print(counter); 
+    counter = counter + 1 
+}
+# Output: 0 1 2
+
+# Complex example with mixed statements
+a = 5; b = 10
+$(a < b) { 
+    print("a:", a); 
+    a = a + 1; 
+    # break when a reaches 8
+    ?(a == 8) { ## } 
+}
+# Output: a: 5 a: 6 a: 7
+```
+
+**Rules**:
+- `;` separates statements within the same line
+- Statements in blocks (curly braces) can be separated by `;` or newlines
+- The last statement in a line or block does not require `;`
+- `;` can be used in REPL to execute multiple commands at once
 
 ### Operators
 

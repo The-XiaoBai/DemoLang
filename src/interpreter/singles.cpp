@@ -189,4 +189,77 @@ void InterpreterSpace::Interpreter::visit(IfNode& node) {
     }
 }
 
+void InterpreterSpace::Interpreter::visit(WhileNode& node) {
+    while (true) {
+        // Evaluate condition before each iteration
+        node.getCondition()->accept(*this);
+        bool condTrue = false;
+        
+        // Same condition logic as IfNode
+        if (auto integer = dynamic_cast<Integer*>(result.get())) {
+            condTrue = (std::any_cast<long long>(integer->getValue()) != 0);
+        } else if (auto flo = dynamic_cast<Float*>(result.get())) {
+            condTrue = (std::any_cast<long double>(flo->getValue()) != 0.0);
+        } else if (auto str = dynamic_cast<String*>(result.get())) {
+            condTrue = (!std::any_cast<std::string>(str->getValue()).empty());
+        }
+        
+        // Exit loop if condition is false
+        if (!condTrue) {
+            result = std::make_shared<String>("");
+            return;
+        }
+        
+        // Execute loop body
+        node.getBody()->accept(*this);
+        
+        // Handle break/continue
+        if (auto exc = dynamic_cast<Exception*>(result.get())) {
+            auto msg = std::any_cast<std::string>(exc->getValue());
+            if (msg == "__break__") {
+                // Exit loop
+                result = std::make_shared<String>("");
+                return;
+            } else if (msg == "__continue__") {
+                // Continue to next iteration (will re-evaluate condition)
+                result = std::make_shared<String>("");
+                continue;
+            }
+            // Real exception - propagate
+            return;
+        }
+    }
+}
+
+void InterpreterSpace::Interpreter::visit(BreakNode& node) {
+    // Set break marker
+    result = std::make_shared<Exception>("__break__");
+}
+
+void InterpreterSpace::Interpreter::visit(ContinueNode& node) {
+    // Set continue marker
+    result = std::make_shared<Exception>("__continue__");
+}
+
+void InterpreterSpace::Interpreter::visit(StatementSequenceNode& node) {
+    std::shared_ptr<BaseType> lastResult = std::make_shared<String>("");
+    
+    for (const auto& stmt : node.getStatements()) {
+        stmt->accept(*this);
+        lastResult = result;
+        
+        // Check for control flow statements
+        if (auto exc = dynamic_cast<Exception*>(lastResult.get())) {
+            auto msg = std::any_cast<std::string>(exc->getValue());
+            if (msg == "__break__" || msg == "__continue__") {
+                // Propagate break/continue to parent loop
+                result = lastResult;
+                return;
+            }
+        }
+    }
+    
+    result = lastResult;
+}
+
 } // namespace DemoLang

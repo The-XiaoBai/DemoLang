@@ -11,6 +11,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <functional>
+#include <memory>
 
 
 namespace DemoLang {

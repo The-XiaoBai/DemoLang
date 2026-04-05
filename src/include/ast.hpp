@@ -35,6 +35,10 @@ public:
     virtual void visit(class FunctionDefNode& node) = 0;
     virtual void visit(class LambdaNode& node) = 0;
     virtual void visit(class IfNode& node) = 0;
+    virtual void visit(class WhileNode& node) = 0;
+    virtual void visit(class BreakNode& node) = 0;
+    virtual void visit(class ContinueNode& node) = 0;
+    virtual void visit(class StatementSequenceNode& node) = 0;
 };
 
 
@@ -225,6 +229,56 @@ public:
     const std::vector<std::shared_ptr<ASTNode>>& getConditions() const;
     const std::vector<std::shared_ptr<ASTNode>>& getBodies() const;
     ASTNode* getElseBody() const;
+};
+
+/**
+ * @brief Node representing while loop statements.
+ * Syntax: $(condition){body}
+**/
+class WhileNode : public ASTNode {
+private:
+    std::shared_ptr<ASTNode> condition;
+    std::shared_ptr<ASTNode> body;
+    
+public:
+    WhileNode(std::shared_ptr<ASTNode> cond, std::shared_ptr<ASTNode> loopBody);
+    void accept(ASTVisitor& visitor) override;
+    ASTNode* getCondition() const;
+    ASTNode* getBody() const;
+};
+
+/**
+ * @brief Node representing break statement.
+ * Syntax: ##
+**/
+class BreakNode : public ASTNode {
+public:
+    BreakNode();
+    void accept(ASTVisitor& visitor) override;
+};
+
+/**
+ * @brief Node representing continue statement.
+ * Syntax: #
+**/
+class ContinueNode : public ASTNode {
+public:
+    ContinueNode();
+    void accept(ASTVisitor& visitor) override;
+};
+
+/**
+ * @brief Node representing sequence of statements.
+ * Syntax: statement1; statement2; ...
+**/
+class StatementSequenceNode : public ASTNode {
+private:
+    std::vector<std::shared_ptr<ASTNode>> statements;
+    
+public:
+    StatementSequenceNode(std::vector<std::shared_ptr<ASTNode>> stmts);
+    void accept(ASTVisitor& visitor) override;
+    const std::vector<std::shared_ptr<ASTNode>>& getStatements() const;
 };
 
 } // namespace AST
