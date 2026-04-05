@@ -320,6 +320,68 @@ std::shared_ptr<ASTNode> ParserSpace::PrimaryParser::handle() {
         return ASTFlyweight::getIdNode(funcName);
     }
 
+    // Handle if statement: ?(cond){body} ??(cond){body} :{body}
+    if (token.type == TokenType::OPERATOR && token.value == "?") {
+        parser.advance(); // Consume '?'
+        
+        std::vector<std::shared_ptr<ASTNode>> conditions;
+        std::vector<std::shared_ptr<ASTNode>> bodies;
+        
+        // Parse first if branch: (condition){body}
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != "(")
+            return std::make_shared<ErrorNode>("Expected '(' after '?'");
+        parser.advance(); // Consume '('
+        conditions.push_back(parser.parseExpression());
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
+            return std::make_shared<ErrorNode>("Expected ')' in if condition");
+        parser.advance(); // Consume ')'
+        
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != "{")
+            return std::make_shared<ErrorNode>("Expected '{' for if body");
+        parser.advance(); // Consume '{'
+        bodies.push_back(parser.parseExpression());
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != "}")
+            return std::make_shared<ErrorNode>("Expected '}' for if body");
+        parser.advance(); // Consume '}'
+        
+        // Parse else-if branches: ??(condition){body}
+        while (parser.current().type == TokenType::OPERATOR && parser.current().value == "??") {
+            parser.advance(); // Consume '??'
+            
+            if (parser.current().type != TokenType::OPERATOR || parser.current().value != "(")
+                return std::make_shared<ErrorNode>("Expected '(' after '??'");
+            parser.advance(); // Consume '('
+            conditions.push_back(parser.parseExpression());
+            if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
+                return std::make_shared<ErrorNode>("Expected ')' in else-if condition");
+            parser.advance(); // Consume ')'
+            
+            if (parser.current().type != TokenType::OPERATOR || parser.current().value != "{")
+                return std::make_shared<ErrorNode>("Expected '{' for else-if body");
+            parser.advance(); // Consume '{'
+            bodies.push_back(parser.parseExpression());
+            if (parser.current().type != TokenType::OPERATOR || parser.current().value != "}")
+                return std::make_shared<ErrorNode>("Expected '}' for else-if body");
+            parser.advance(); // Consume '}'
+        }
+        
+        // Parse optional else branch: :{body}
+        std::shared_ptr<ASTNode> elseBody = nullptr;
+        if (parser.current().type == TokenType::OPERATOR && parser.current().value == ":") {
+            parser.advance(); // Consume ':'
+            
+            if (parser.current().type != TokenType::OPERATOR || parser.current().value != "{")
+                return std::make_shared<ErrorNode>("Expected '{' for else body");
+            parser.advance(); // Consume '{'
+            elseBody = parser.parseExpression();
+            if (parser.current().type != TokenType::OPERATOR || parser.current().value != "}")
+                return std::make_shared<ErrorNode>("Expected '}' for else body");
+            parser.advance(); // Consume '}'
+        }
+        
+        return std::make_shared<IfNode>(conditions, bodies, elseBody);
+    }
+
     // Handle lambda call: (params){body}(args)
     if (token.type == TokenType::OPERATOR && token.value == "(") {
         auto lambda = ASTFlyweight::createParenthesizedNode(token, parser);

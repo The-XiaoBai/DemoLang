@@ -177,6 +177,48 @@ public:
 };
 
 
+class TestIfStatement : public InterpreterTestCase {
+public:
+    void run() override {
+        // If true branch
+        auto ifTrue = std::make_shared<IfNode>(
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(1)},
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(100)},
+            nullptr
+        );
+        std::string result = interpreter->interpret(ifTrue);
+        assert(result == "100");
+
+        // If false with else
+        auto ifElse = std::make_shared<IfNode>(
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(0)},
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(100)},
+            std::make_shared<IntNode>(200)
+        );
+        result = interpreter->interpret(ifElse);
+        assert(result == "200");
+
+        // Else-if: first false, second true
+        auto ifElseIf = std::make_shared<IfNode>(
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(0), std::make_shared<IntNode>(1)},
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(100), std::make_shared<IntNode>(200)},
+            std::make_shared<IntNode>(300)
+        );
+        result = interpreter->interpret(ifElseIf);
+        assert(result == "200");
+
+        // All false, fall to else
+        auto allFalse = std::make_shared<IfNode>(
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(0), std::make_shared<IntNode>(0)},
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(100), std::make_shared<IntNode>(200)},
+            std::make_shared<IntNode>(300)
+        );
+        result = interpreter->interpret(allFalse);
+        assert(result == "300");
+    }
+};
+
+
 int main() {
     TestRunner runner;
     runner.addTest("Interpreter: Unary Operators", std::make_shared<TestUnaryOperators>());
@@ -185,6 +227,7 @@ int main() {
     runner.addTest("Interpreter: Variables", std::make_shared<TestVariables>());
     runner.addTest("Interpreter: Error Handling", std::make_shared<TestErrorHandling>());
     runner.addTest("Interpreter: Built-in Functions", std::make_shared<TestBuiltinFunctions>());
+    runner.addTest("Interpreter: If Statement", std::make_shared<TestIfStatement>());
     runner.runAll();
 
     return 0;

@@ -71,6 +71,7 @@ public:
     void visit(FunctionCallNode& node) override;
     void visit(FunctionDefNode& node) override;
     void visit(LambdaNode& node) override;
+    void visit(IfNode& node) override;
 };
 
 } // namespace InterpreterSpace

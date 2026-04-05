@@ -163,4 +163,30 @@ void InterpreterSpace::Interpreter::visit(LambdaNode& node) {
     result = std::make_shared<String>("[lambda]");
 }
 
+void InterpreterSpace::Interpreter::visit(IfNode& node) {
+    // Evaluate conditions sequentially, execute first matching body
+    for (size_t i = 0; i < node.getConditions().size(); ++i) {
+        node.getConditions()[i]->accept(*this);
+        // Check if condition is truthy (non-zero, non-empty, non-exception)
+        bool condTrue = false;
+        if (auto integer = dynamic_cast<Integer*>(result.get())) {
+            condTrue = (std::any_cast<long long>(integer->getValue()) != 0);
+        } else if (auto flo = dynamic_cast<Float*>(result.get())) {
+            condTrue = (std::any_cast<long double>(flo->getValue()) != 0.0);
+        } else if (auto str = dynamic_cast<String*>(result.get())) {
+            condTrue = (!std::any_cast<std::string>(str->getValue()).empty());
+        }
+        if (condTrue) {
+            node.getBodies()[i]->accept(*this);
+            return;
+        }
+    }
+    // No condition matched, execute else body if exists
+    if (node.getElseBody()) {
+        node.getElseBody()->accept(*this);
+    } else {
+        result = std::make_shared<String>("");
+    }
+}
+
 } // namespace DemoLang

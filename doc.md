@@ -74,6 +74,41 @@ x = 3.14         # Reassign to different type
 
 **String**: `"Hello" + " " + "World"`
 
+### Control Flow
+
+#### If Statement
+
+DemoLang supports conditional execution with if-else syntax:
+
+```
+# Basic if
+?(condition) { body }
+
+# If-else
+?(condition) { body } : { else_body }
+
+# If-else if-else
+?(condition) { body } ??(condition) { body } : { else_body }
+```
+
+**Syntax**:
+- `?` starts an if branch
+- `??` starts an else-if branch (multiple allowed)
+- `:` introduces the else branch (optional)
+- Conditions are evaluated sequentially; first true condition executes its body
+- Truthy values: non-zero integers, non-zero floats, non-empty strings
+- Falsy values: `0`, `0.0`, `""`
+
+```
+x = 5
+?(x > 10) { print("large") } : { print("small") }
+# Output: small
+
+y = 15
+?(y > 10) { print("A") } ??(y > 5) { print("B") } : { print("C") }
+# Output: A
+```
+
 ### Operators
 
 **Arithmetic**: `+`, `-`, `*`, `/`

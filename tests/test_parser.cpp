@@ -167,12 +167,89 @@ public:
 };
 
 
+class TestIfStatement : public ParserTestCase {
+public:
+    void run() override {
+        // Basic if: ?(1){100}
+        std::vector<Token> tokens1 = {
+            {TokenType::OPERATOR, "?"},
+            {TokenType::OPERATOR, "("},
+            {TokenType::INTEGER_LITERAL, "1"},
+            {TokenType::OPERATOR, ")"},
+            {TokenType::OPERATOR, "{"},
+            {TokenType::INTEGER_LITERAL, "100"},
+            {TokenType::OPERATOR, "}"},
+            {TokenType::END, ""}
+        };
+        std::shared_ptr<ASTNode> ast1 = parser->parse(tokens1);
+        assert(ast1);
+        auto ifNode1 = dynamic_cast<IfNode*>(ast1.get());
+        assert(ifNode1);
+        assert(ifNode1->getConditions().size() == 1);
+        assert(ifNode1->getBodies().size() == 1);
+        assert(ifNode1->getElseBody() == nullptr);
+
+        // If-else: ?(0){100}:{200}
+        std::vector<Token> tokens2 = {
+            {TokenType::OPERATOR, "?"},
+            {TokenType::OPERATOR, "("},
+            {TokenType::INTEGER_LITERAL, "0"},
+            {TokenType::OPERATOR, ")"},
+            {TokenType::OPERATOR, "{"},
+            {TokenType::INTEGER_LITERAL, "100"},
+            {TokenType::OPERATOR, "}"},
+            {TokenType::OPERATOR, ":"},
+            {TokenType::OPERATOR, "{"},
+            {TokenType::INTEGER_LITERAL, "200"},
+            {TokenType::OPERATOR, "}"},
+            {TokenType::END, ""}
+        };
+        std::shared_ptr<ASTNode> ast2 = parser->parse(tokens2);
+        assert(ast2);
+        auto ifNode2 = dynamic_cast<IfNode*>(ast2.get());
+        assert(ifNode2);
+        assert(ifNode2->getElseBody() != nullptr);
+
+        // If else-if else: ?(0){100}??(1){200}:{300}
+        std::vector<Token> tokens3 = {
+            {TokenType::OPERATOR, "?"},
+            {TokenType::OPERATOR, "("},
+            {TokenType::INTEGER_LITERAL, "0"},
+            {TokenType::OPERATOR, ")"},
+            {TokenType::OPERATOR, "{"},
+            {TokenType::INTEGER_LITERAL, "100"},
+            {TokenType::OPERATOR, "}"},
+            {TokenType::OPERATOR, "??"},
+            {TokenType::OPERATOR, "("},
+            {TokenType::INTEGER_LITERAL, "1"},
+            {TokenType::OPERATOR, ")"},
+            {TokenType::OPERATOR, "{"},
+            {TokenType::INTEGER_LITERAL, "200"},
+            {TokenType::OPERATOR, "}"},
+            {TokenType::OPERATOR, ":"},
+            {TokenType::OPERATOR, "{"},
+            {TokenType::INTEGER_LITERAL, "300"},
+            {TokenType::OPERATOR, "}"},
+            {TokenType::END, ""}
+        };
+        std::shared_ptr<ASTNode> ast3 = parser->parse(tokens3);
+        assert(ast3);
+        auto ifNode3 = dynamic_cast<IfNode*>(ast3.get());
+        assert(ifNode3);
+        assert(ifNode3->getConditions().size() == 2);
+        assert(ifNode3->getBodies().size() == 2);
+        assert(ifNode3->getElseBody() != nullptr);
+    }
+};
+
+
 int main() {
     TestRunner runner;
     runner.addTest("Parser: Unary Operator", std::make_shared<TestUnaryOp>());
     runner.addTest("Parser: Binary Operator", std::make_shared<TestBinaryOp>());
     runner.addTest("Parser: Literals", std::make_shared<TestLiterals>());
     runner.addTest("Parser: Error Handling", std::make_shared<TestErrorHandling>());
+    runner.addTest("Parser: If Statement", std::make_shared<TestIfStatement>());
     runner.runAll();
 
     return 0;

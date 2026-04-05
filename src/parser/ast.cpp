@@ -158,5 +158,26 @@ ASTNode* LambdaNode::getBody() const {
     return body.get();
 }
 
+IfNode::IfNode(std::vector<std::shared_ptr<ASTNode>> conds,
+               std::vector<std::shared_ptr<ASTNode>> bodys,
+               std::shared_ptr<ASTNode> elseBod)
+    : conditions(std::move(conds)), bodies(std::move(bodys)), elseBody(std::move(elseBod)) {}
+
+void IfNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::vector<std::shared_ptr<ASTNode>>& IfNode::getConditions() const {
+    return conditions;
+}
+
+const std::vector<std::shared_ptr<ASTNode>>& IfNode::getBodies() const {
+    return bodies;
+}
+
+ASTNode* IfNode::getElseBody() const {
+    return elseBody.get();
+}
+
 } // namespace AST
 } // namespace DemoLang

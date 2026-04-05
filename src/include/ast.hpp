@@ -34,6 +34,7 @@ public:
     virtual void visit(class FunctionCallNode& node) = 0;
     virtual void visit(class FunctionDefNode& node) = 0;
     virtual void visit(class LambdaNode& node) = 0;
+    virtual void visit(class IfNode& node) = 0;
 };
 
 
@@ -204,6 +205,26 @@ public:
     const std::vector<std::string>& getParams() const;
     const std::vector<std::shared_ptr<ASTNode>>& getParamDefaults() const;
     ASTNode* getBody() const;
+};
+
+/**
+ * @brief Node representing if-else if-else statements.
+ * Syntax: ?(condition){body} ??(condition){body} :{body}
+**/
+class IfNode : public ASTNode {
+private:
+    std::vector<std::shared_ptr<ASTNode>> conditions;  // condition expressions
+    std::vector<std::shared_ptr<ASTNode>> bodies;       // corresponding bodies
+    std::shared_ptr<ASTNode> elseBody;                  // else branch (nullable)
+
+public:
+    IfNode(std::vector<std::shared_ptr<ASTNode>> conds,
+           std::vector<std::shared_ptr<ASTNode>> bodys,
+           std::shared_ptr<ASTNode> elseBod);
+    void accept(ASTVisitor& visitor) override;
+    const std::vector<std::shared_ptr<ASTNode>>& getConditions() const;
+    const std::vector<std::shared_ptr<ASTNode>>& getBodies() const;
+    ASTNode* getElseBody() const;
 };
 
 } // namespace AST
