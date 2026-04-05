@@ -1,5 +1,5 @@
 /**
- * @file include/lexer.hpp
+ * @file src/include/lexer.hpp
  * @brief Tokenizing input to tokens.
 **/
 
@@ -32,72 +32,96 @@ private:
     size_t position;
 
 public:
-    Lexer() : position(0) {};
+    Lexer();
     
-    std::string getInput() const { return input; };
-    size_t pos() const { return position; };
-    char current() const { return position >= input.length() ? '\0' : input[position]; };
-    void advance(size_t step=1) { position += step; };
+    std::string getInput() const;
+    size_t pos() const;
+    char current() const;
+    void advance(size_t step=1);
     Token nextToken();
     std::vector<Token> tokenize(const std::string &input);
 };
 
 
+/**
+ * @brief Base handler for token recognition.
+**/
 class BaseHandler : public Handler<Token> {
 protected:
     Lexer& lexer;
 
 public:
-    BaseHandler(Lexer& lexer) : lexer(lexer) {};
+    BaseHandler(Lexer& lexer);
     virtual std::shared_ptr<Token> handle() = 0;
 };
 
 
+/**
+ * @brief Handler for end of file tokens.
+**/
 class EOFHandler : public BaseHandler {
 public:
-    EOFHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    EOFHandler(Lexer& lexer);
     std::shared_ptr<Token> handle();
 };
 
 
+/**
+ * @brief Handler for whitespace tokens.
+**/
 class WhitespaceHandler : public BaseHandler {
 public:
-    WhitespaceHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    WhitespaceHandler(Lexer& lexer);
     std::shared_ptr<Token> handle();
 };
 
 
+/**
+ * @brief Handler for operator tokens.
+**/
 class OperatorHandler : public BaseHandler {
 public:
-    OperatorHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    OperatorHandler(Lexer& lexer);
     std::shared_ptr<Token> handle();
 };
 
 
+/**
+ * @brief Handler for identifier tokens.
+**/
 class IdentifierHandler : public BaseHandler {
 public:
-    IdentifierHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    IdentifierHandler(Lexer& lexer);
     std::shared_ptr<Token> handle();
 };
 
 
+/**
+ * @brief Handler for number tokens.
+**/
 class NumberHandler : public BaseHandler {
 public:
-    NumberHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    NumberHandler(Lexer& lexer);
     std::shared_ptr<Token> handle();
 };
 
 
+/**
+ * @brief Handler for string tokens.
+**/
 class StringHandler : public BaseHandler {
 public:
-    StringHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    StringHandler(Lexer& lexer);
     std::shared_ptr<Token> handle();
 };
 
 
+/**
+ * @brief Handler for unknown/error tokens.
+**/
 class UnknownHandler : public BaseHandler {
 public:
-    UnknownHandler(Lexer& lexer) : BaseHandler(lexer) {}
+    UnknownHandler(Lexer& lexer);
     std::shared_ptr<Token> handle();
 };
 

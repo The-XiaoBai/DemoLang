@@ -10,6 +10,25 @@
 
 namespace DemoLang {
 
+namespace ParserSpace {
+
+Parser::Parser() : current_pos(0) {}
+
+BaseParser::BaseParser(Parser& parser) : parser(parser) {}
+
+UnaryParser::UnaryParser(Parser& parser, std::vector<std::string> operators)
+    : BaseParser(parser), operators(operators) {}
+
+BinaryParser::BinaryParser(Parser& parser, std::vector<std::string> operators)
+    : BaseParser(parser), operators(operators) {}
+
+PrimaryParser::PrimaryParser(Parser& parser) : BaseParser(parser) {}
+
+} // namespace ParserSpace
+
+Token ParserSpace::Parser::current() const { return current_pos < tokens.size() ? tokens[current_pos] : Token(TokenType::END, ""); }
+void ParserSpace::Parser::advance() { if (current_pos < tokens.size()) current_pos++; }
+
 bool ParserSpace::Parser::match(TokenType type, const std::string& value) {
     // Check if current token matches expected type and value
     Token curr = current();
@@ -34,6 +53,33 @@ std::shared_ptr<ASTNode> ParserSpace::Parser::parse(const std::vector<Token> &to
 }
 
 std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpression() {
+    // Parse sequence of statements separated by ';'
+    std::vector<std::shared_ptr<ASTNode>> statements;
+    
+    // Parse first expression
+    auto firstExpr = parseExpressionInternal();
+    statements.push_back(firstExpr);
+    
+    // Parse additional statements separated by ';'
+    while (current().type == TokenType::OPERATOR && current().value == ";") {
+        advance(); // Consume ';'
+        if (current().type == TokenType::END) {
+            // Trailing semicolon at end
+            break;
+        }
+        auto nextExpr = parseExpressionInternal();
+        statements.push_back(nextExpr);
+    }
+    
+    // Return single statement or sequence node
+    if (statements.size() == 1) {
+        return statements[0];
+    } else {
+        return std::make_shared<StatementSequenceNode>(statements);
+    }
+}
+
+std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpressionInternal() {
     // Create operator precedence chain using chain of responsibility pattern
     // Operators are added in order of precedence (lowest to highest)
     Utils::Chain<ASTNode> chain;

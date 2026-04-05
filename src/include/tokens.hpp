@@ -1,5 +1,5 @@
 /**
- * @file include/tokens.hpp
+ * @file src/include/tokens.hpp
  * @brief The token types used in the lexical analysis.
 **/
 
@@ -42,10 +42,11 @@ const std::vector<std::string> whitespaces = {
  * @brief List of supported operators.
 **/
 const std::vector<std::string> operators = {
-    "==", "!=", ">=", "<=", ">", "<",
-    "=", "(", ")", "{", "}",
+    "==", "!=", ">=", "<=", "##", "??",
+    ">", "<", "=", "(", ")", "{", "}",
     "+", "-", "*", "/",
-    "!", "&", "|"
+    "!", "&", "|", ",",
+    "@", "?", ":", "$", "#", ";"
 };
 
 

@@ -8,6 +8,14 @@
 
 namespace DemoLang {
 
+namespace InterpreterSpace {
+
+Environment::Environment() = default;
+
+Interpreter::Interpreter() = default;
+
+} // namespace InterpreterSpace
+
 bool InterpreterSpace::Environment::has(const std::string& name) const {
     // Check if variable exists in current scope
     return scope.find(name) != scope.end();
@@ -28,6 +36,19 @@ void InterpreterSpace::Environment::set(const std::string& name, const BaseType&
     scope[name] = value.clone();
 }
 
+bool InterpreterSpace::Environment::hasFunction(const std::string& name) const {
+    return functions.find(name) != functions.end();
+}
+
+std::shared_ptr<ASTNode> InterpreterSpace::Environment::getFunction(const std::string& name) const {
+    auto it = functions.find(name);
+    if (it != functions.end()) return it->second;
+    return nullptr;
+}
+
+void InterpreterSpace::Environment::setFunction(const std::string& name, std::shared_ptr<ASTNode> func) {
+    functions[name] = func;
+}
 
 std::string InterpreterSpace::Interpreter::interpret(const std::shared_ptr<AST::ASTNode>& node) {
     // Handle null AST node

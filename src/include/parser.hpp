@@ -1,5 +1,5 @@
 /**
- * @file include/parser.hpp
+ * @file src/include/parser.hpp
  * @brief Parse tokens into an Abstract Syntax Tree (AST).
 **/
 
@@ -34,51 +34,62 @@ private:
     size_t current_pos;
 
 public:
-    Parser() : current_pos(0) {};
+    Parser();
     
-    Token current() const { return current_pos < tokens.size() ? tokens[current_pos] : Token(TokenType::END, ""); }
-    void advance() { if (current_pos < tokens.size()) current_pos++; }
+    Token current() const;
+    void advance();
     bool match(TokenType type, const std::string& value);
     std::shared_ptr<ASTNode> parse(const std::vector<Token> &tokens);
     std::shared_ptr<ASTNode> parseExpression();
+    std::shared_ptr<ASTNode> parseExpressionInternal();
 };
 
 
+/**
+ * @brief Base parser for AST node generation.
+**/
 class BaseParser : public Handler<ASTNode> {
 protected:
     Parser& parser;
 
 public:
-    BaseParser(Parser& parser) : parser(parser) {};
+    BaseParser(Parser& parser);
     virtual std::shared_ptr<ASTNode> handle() = 0;
 };
 
 
+/**
+ * @brief Parser for unary operations.
+**/
 class UnaryParser : public BaseParser {
 private:
     std::vector<std::string> operators;
 
 public:
-    UnaryParser(Parser& parser, std::vector<std::string> operators)
-        : BaseParser(parser), operators(operators) {};
+    UnaryParser(Parser& parser, std::vector<std::string> operators);
     std::shared_ptr<ASTNode> handle() override;
 };
 
 
+/**
+ * @brief Parser for binary operations.
+**/
 class BinaryParser : public BaseParser {
 private:
     std::vector<std::string> operators;
 
 public:
-    BinaryParser(Parser& parser, std::vector<std::string> operators)
-        : BaseParser(parser), operators(operators) {};
+    BinaryParser(Parser& parser, std::vector<std::string> operators);
     std::shared_ptr<ASTNode> handle() override;
 };
 
 
+/**
+ * @brief Parser for primary expressions.
+**/
 class PrimaryParser : public BaseParser {
 public:
-    PrimaryParser(Parser& parser) : BaseParser(parser) {};
+    PrimaryParser(Parser& parser);
     std::shared_ptr<ASTNode> handle() override;
 };
 

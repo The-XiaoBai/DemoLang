@@ -37,6 +37,94 @@ std::shared_ptr<ASTNode> ParserSpace::BinaryParser::handle() {
         
         std::string op = token.value;
         parser.advance(); // Consume the operator
+        
+        // Check for function definition: identifier = (params) { body }
+        if (op == "=" && dynamic_cast<IdNode*>(left.get()) != nullptr) {
+            if (parser.current().type == TokenType::OPERATOR && parser.current().value == "(") {
+                std::string funcName = dynamic_cast<IdNode*>(left.get())->getName();
+                parser.advance(); // Consume '('
+                
+                // Parse parameters
+                std::vector<std::string> params;
+                std::vector<std::shared_ptr<ASTNode>> paramDefaults;
+
+                // Handle empty parameter list
+                if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
+                    parser.advance(); // Consume ')'
+                } else {
+                    // Parse first parameter (support default value: a=1)
+                    if (parser.current().type == TokenType::IDENTIFIER) {
+                        std::string paramName = parser.current().value;
+                        parser.advance(); // Consume parameter name
+                        // Check for default value
+                        std::shared_ptr<ASTNode> defaultValue = nullptr;
+                        if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
+                            parser.advance(); // Consume '='
+                            defaultValue = parser.parseExpression();
+                        }
+                        params.push_back(paramName);
+                        paramDefaults.push_back(defaultValue);
+                    } else {
+                        return std::make_shared<ErrorNode>("Expected parameter name");
+                    }
+
+                    // Parse remaining parameters
+                    while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
+                        parser.advance(); // Consume ','
+                        if (parser.current().type == TokenType::IDENTIFIER) {
+                            std::string paramName = parser.current().value;
+                            parser.advance(); // Consume parameter name
+                            // Check for default value
+                            std::shared_ptr<ASTNode> defaultValue = nullptr;
+                            if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
+                                parser.advance(); // Consume '='
+                                defaultValue = parser.parseExpression();
+                            }
+                            params.push_back(paramName);
+                            paramDefaults.push_back(defaultValue);
+                        } else {
+                            return std::make_shared<ErrorNode>("Expected parameter name after ','");
+                        }
+                    }
+
+                    // Expect closing ')'
+                    if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
+                        parser.advance(); // Consume ')'
+                    } else {
+                        return std::make_shared<ErrorNode>("Expected ')' in function definition");
+                    }
+                }
+                
+                // Expect '{' for function body
+                if (parser.current().type == TokenType::OPERATOR && parser.current().value == "{") {
+                    parser.advance(); // Consume '{'
+                    
+                    // Parse function body with @ return
+                    std::shared_ptr<ASTNode> body;
+                    if (parser.current().type == TokenType::OPERATOR && parser.current().value == "@") {
+                        parser.advance(); // Consume '@'
+                        body = parser.parseExpression();
+                    } else if (parser.current().type == TokenType::OPERATOR && parser.current().value == "}") {
+                        // Empty function body - returns empty
+                        body = std::make_shared<StringNode>("");
+                    } else {
+                        // Parse expression as statement (no return value)
+                        body = parser.parseExpression();
+                    }
+                    
+                    // Expect closing '}'
+                    if (parser.current().type == TokenType::OPERATOR && parser.current().value == "}") {
+                        parser.advance(); // Consume '}'
+                        return std::make_shared<FunctionDefNode>(funcName, params, paramDefaults, body);
+                    } else {
+                        return std::make_shared<ErrorNode>("Expected '}' in function definition");
+                    }
+                } else {
+                    return std::make_shared<ErrorNode>("Expected '{' in function definition");
+                }
+            }
+        }
+        
         auto right = nextHandler->handle();  // Parse right operand
         if (!right) return std::make_shared<ErrorNode>("Expected right operand for: " + op);
 

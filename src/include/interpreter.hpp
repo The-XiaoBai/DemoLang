@@ -1,5 +1,5 @@
 /**
- * @file include/interpreter.hpp
+ * @file src/include/interpreter.hpp
  * @brief Basic declaration for interpreter.
 **/
 
@@ -29,13 +29,20 @@ namespace InterpreterSpace {
 class Environment {
 private:
     std::unordered_map<std::string, std::shared_ptr<BaseType>> scope;
+    std::unordered_map<std::string, std::shared_ptr<ASTNode>> functions;
 
 public:
-    Environment() = default;
+    Environment();
     
     bool has(const std::string& name) const;
     std::shared_ptr<BaseType> get(const std::string& name) const;
     void set(const std::string& name, const BaseType& value);
+    bool hasFunction(const std::string& name) const;
+    std::shared_ptr<ASTNode> getFunction(const std::string& name) const;
+    void setFunction(const std::string& name, std::shared_ptr<ASTNode> func);
+    
+    // Allow Interpreter to access scope directly
+    friend class Interpreter;
 };
 
 
@@ -48,9 +55,10 @@ class Interpreter : public Singleton<Interpreter>, public ASTVisitor {
 private:
     Environment env = Environment();
     std::shared_ptr<BaseType> result;
+    std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> builtins;
 
 public:
-    Interpreter() = default;
+    Interpreter();
     std::string interpret(const std::shared_ptr<ASTNode>& node);
     
     void visit(UnaryOpNode& node) override;
@@ -60,6 +68,14 @@ public:
     void visit(FloatNode& node) override;
     void visit(StringNode& node) override;
     void visit(ErrorNode& node) override;
+    void visit(FunctionCallNode& node) override;
+    void visit(FunctionDefNode& node) override;
+    void visit(LambdaNode& node) override;
+    void visit(IfNode& node) override;
+    void visit(WhileNode& node) override;
+    void visit(BreakNode& node) override;
+    void visit(ContinueNode& node) override;
+    void visit(StatementSequenceNode& node) override;
 };
 
 } // namespace InterpreterSpace

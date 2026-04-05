@@ -127,6 +127,98 @@ public:
 };
 
 
+class TestBuiltinFunctions : public InterpreterTestCase {
+public:
+    void run() override {
+        std::string result;
+
+        // Test print with integer
+        auto intArg = std::make_shared<IntNode>(42);
+        auto printCall1 = std::make_shared<FunctionCallNode>("print", std::vector<std::shared_ptr<ASTNode>>{intArg});
+        result = interpreter->interpret(printCall1);
+        assert(result == "");
+
+        // Test print with float
+        auto floatArg = std::make_shared<FloatNode>(3.14);
+        auto printCall2 = std::make_shared<FunctionCallNode>("print", std::vector<std::shared_ptr<ASTNode>>{floatArg});
+        result = interpreter->interpret(printCall2);
+        assert(result == "");
+
+        // Test print with string
+        auto strArg = std::make_shared<StringNode>("hello");
+        auto printCall3 = std::make_shared<FunctionCallNode>("print", std::vector<std::shared_ptr<ASTNode>>{strArg});
+        result = interpreter->interpret(printCall3);
+        assert(result == "");
+
+        // Test print with multiple arguments
+        auto intArg2 = std::make_shared<IntNode>(1);
+        auto floatArg2 = std::make_shared<FloatNode>(2.5);
+        auto strArg2 = std::make_shared<StringNode>("PrintFunctionTests");
+        auto printCall4 = std::make_shared<FunctionCallNode>("print", std::vector<std::shared_ptr<ASTNode>>{intArg2, floatArg2, strArg2});
+        result = interpreter->interpret(printCall4);
+        assert(result == "");
+
+        // Test exit with no arguments (default exit code 0)
+        auto exitCall1 = std::make_shared<FunctionCallNode>("exit", std::vector<std::shared_ptr<ASTNode>>{});
+        result = interpreter->interpret(exitCall1);
+        assert(result == "");
+
+        // Test exit with integer argument
+        auto exitCode = std::make_shared<IntNode>(1);
+        auto exitCall2 = std::make_shared<FunctionCallNode>("exit", std::vector<std::shared_ptr<ASTNode>>{exitCode});
+        result = interpreter->interpret(exitCall2);
+        assert(result == "");
+
+        // Test unknown function
+        auto unknownCall = std::make_shared<FunctionCallNode>("unknown", std::vector<std::shared_ptr<ASTNode>>{intArg});
+        result = interpreter->interpret(unknownCall);
+        assert(result == "Unknown function: unknown");
+    }
+};
+
+
+class TestIfStatement : public InterpreterTestCase {
+public:
+    void run() override {
+        // If true branch
+        auto ifTrue = std::make_shared<IfNode>(
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(1)},
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(100)},
+            nullptr
+        );
+        std::string result = interpreter->interpret(ifTrue);
+        assert(result == "100");
+
+        // If false with else
+        auto ifElse = std::make_shared<IfNode>(
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(0)},
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(100)},
+            std::make_shared<IntNode>(200)
+        );
+        result = interpreter->interpret(ifElse);
+        assert(result == "200");
+
+        // Else-if: first false, second true
+        auto ifElseIf = std::make_shared<IfNode>(
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(0), std::make_shared<IntNode>(1)},
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(100), std::make_shared<IntNode>(200)},
+            std::make_shared<IntNode>(300)
+        );
+        result = interpreter->interpret(ifElseIf);
+        assert(result == "200");
+
+        // All false, fall to else
+        auto allFalse = std::make_shared<IfNode>(
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(0), std::make_shared<IntNode>(0)},
+            std::vector<std::shared_ptr<ASTNode>>{std::make_shared<IntNode>(100), std::make_shared<IntNode>(200)},
+            std::make_shared<IntNode>(300)
+        );
+        result = interpreter->interpret(allFalse);
+        assert(result == "300");
+    }
+};
+
+
 int main() {
     TestRunner runner;
     runner.addTest("Interpreter: Unary Operators", std::make_shared<TestUnaryOperators>());
@@ -134,6 +226,8 @@ int main() {
     runner.addTest("Interpreter: Literals", std::make_shared<TestLiterals>());
     runner.addTest("Interpreter: Variables", std::make_shared<TestVariables>());
     runner.addTest("Interpreter: Error Handling", std::make_shared<TestErrorHandling>());
+    runner.addTest("Interpreter: Built-in Functions", std::make_shared<TestBuiltinFunctions>());
+    runner.addTest("Interpreter: If Statement", std::make_shared<TestIfStatement>());
     runner.runAll();
 
     return 0;

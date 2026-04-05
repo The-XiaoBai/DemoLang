@@ -8,6 +8,33 @@
 
 namespace DemoLang {
 
+namespace LexerSpace {
+
+Lexer::Lexer() : position(0) {}
+
+std::string Lexer::getInput() const { return input; }
+size_t Lexer::pos() const { return position; }
+char Lexer::current() const { return position >= input.length() ? '\0' : input[position]; }
+void Lexer::advance(size_t step) { position += step; }
+
+BaseHandler::BaseHandler(Lexer& lexer) : lexer(lexer) {}
+
+EOFHandler::EOFHandler(Lexer& lexer) : BaseHandler(lexer) {}
+
+WhitespaceHandler::WhitespaceHandler(Lexer& lexer) : BaseHandler(lexer) {}
+
+OperatorHandler::OperatorHandler(Lexer& lexer) : BaseHandler(lexer) {}
+
+IdentifierHandler::IdentifierHandler(Lexer& lexer) : BaseHandler(lexer) {}
+
+NumberHandler::NumberHandler(Lexer& lexer) : BaseHandler(lexer) {}
+
+StringHandler::StringHandler(Lexer& lexer) : BaseHandler(lexer) {}
+
+UnknownHandler::UnknownHandler(Lexer& lexer) : BaseHandler(lexer) {}
+
+} // namespace LexerSpace
+
 Token LexerSpace::Lexer::nextToken() {
     // Create a chain of responsibility pattern for token recognition
     Chain<Token> chain;
