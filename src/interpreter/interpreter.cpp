@@ -57,9 +57,6 @@ std::string InterpreterSpace::Interpreter::interpret(const std::shared_ptr<AST::
         return std::any_cast<std::string>(result->getValue());
     }
 
-    // Reset return flag for top-level interpretation
-    hasReturnValue = false;
-
     // Start AST traversal using visitor pattern
     node->accept(*this);
 

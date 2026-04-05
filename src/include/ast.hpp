@@ -33,14 +33,14 @@ public:
     virtual void visit(class ErrorNode& node) = 0;
     virtual void visit(class FunctionCallNode& node) = 0;
     virtual void visit(class FunctionDefNode& node) = 0;
-    virtual void visit(class ReturnNode& node) = 0;
+    virtual void visit(class LambdaNode& node) = 0;
 };
 
 
 /**
  * @brief Base class for all AST nodes.
 **/
-struct ASTNode {
+struct ASTNode : public std::enable_shared_from_this<ASTNode> {
     virtual ~ASTNode() = default;
     virtual void accept(ASTVisitor& visitor) = 0;
 };
@@ -156,12 +156,15 @@ public:
 class FunctionCallNode : public ASTNode {
 private:
     std::string name;
+    std::shared_ptr<ASTNode> lambdaNode;
     std::vector<std::shared_ptr<ASTNode>> args;
 
 public:
     FunctionCallNode(const std::string& funcName, std::vector<std::shared_ptr<ASTNode>> arguments);
+    FunctionCallNode(std::shared_ptr<ASTNode> lambda, std::vector<std::shared_ptr<ASTNode>> arguments);
     void accept(ASTVisitor& visitor) override;
     const std::string& getName() const;
+    std::shared_ptr<ASTNode> getLambdaNode() const;
     const std::vector<std::shared_ptr<ASTNode>>& getArgs() const;
 };
 
@@ -186,16 +189,21 @@ public:
 };
 
 /**
- * @brief Node representing return statements.
+ * @brief Node representing anonymous lambda functions.
 **/
-class ReturnNode : public ASTNode {
+class LambdaNode : public ASTNode {
 private:
-    std::shared_ptr<ASTNode> value;
+    std::vector<std::string> params;
+    std::vector<std::shared_ptr<ASTNode>> paramDefaults;
+    std::shared_ptr<ASTNode> body;
 
 public:
-    explicit ReturnNode(std::shared_ptr<ASTNode> returnValue);
+    LambdaNode(std::vector<std::string> parameters, 
+               std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody);
     void accept(ASTVisitor& visitor) override;
-    ASTNode* getValue() const;
+    const std::vector<std::string>& getParams() const;
+    const std::vector<std::shared_ptr<ASTNode>>& getParamDefaults() const;
+    ASTNode* getBody() const;
 };
 
 } // namespace AST

@@ -93,7 +93,10 @@ const std::string& ErrorNode::getMessage() const {
 }
 
 FunctionCallNode::FunctionCallNode(const std::string& funcName, std::vector<std::shared_ptr<ASTNode>> arguments)
-    : name(funcName), args(std::move(arguments)) {}
+    : name(funcName), lambdaNode(nullptr), args(std::move(arguments)) {}
+
+FunctionCallNode::FunctionCallNode(std::shared_ptr<ASTNode> lambda, std::vector<std::shared_ptr<ASTNode>> arguments)
+    : name(""), lambdaNode(std::move(lambda)), args(std::move(arguments)) {}
 
 void FunctionCallNode::accept(ASTVisitor& visitor) {
     visitor.visit(*this);
@@ -101,6 +104,10 @@ void FunctionCallNode::accept(ASTVisitor& visitor) {
 
 const std::string& FunctionCallNode::getName() const {
     return name;
+}
+
+std::shared_ptr<ASTNode> FunctionCallNode::getLambdaNode() const {
+    return lambdaNode;
 }
 
 const std::vector<std::shared_ptr<ASTNode>>& FunctionCallNode::getArgs() const {
@@ -131,14 +138,24 @@ ASTNode* FunctionDefNode::getBody() const {
     return body.get();
 }
 
-ReturnNode::ReturnNode(std::shared_ptr<ASTNode> returnValue) : value(std::move(returnValue)) {}
+LambdaNode::LambdaNode(std::vector<std::string> parameters,
+                       std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody)
+    : params(std::move(parameters)), paramDefaults(std::move(defaults)), body(std::move(functionBody)) {}
 
-void ReturnNode::accept(ASTVisitor& visitor) {
+void LambdaNode::accept(ASTVisitor& visitor) {
     visitor.visit(*this);
 }
 
-ASTNode* ReturnNode::getValue() const {
-    return value.get();
+const std::vector<std::string>& LambdaNode::getParams() const {
+    return params;
+}
+
+const std::vector<std::shared_ptr<ASTNode>>& LambdaNode::getParamDefaults() const {
+    return paramDefaults;
+}
+
+ASTNode* LambdaNode::getBody() const {
+    return body.get();
 }
 
 } // namespace AST

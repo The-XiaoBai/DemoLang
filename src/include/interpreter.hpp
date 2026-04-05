@@ -56,7 +56,6 @@ private:
     Environment env = Environment();
     std::shared_ptr<BaseType> result;
     std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> builtins;
-    bool hasReturnValue = false;
 
 public:
     Interpreter();
@@ -71,7 +70,7 @@ public:
     void visit(ErrorNode& node) override;
     void visit(FunctionCallNode& node) override;
     void visit(FunctionDefNode& node) override;
-    void visit(ReturnNode& node) override;
+    void visit(LambdaNode& node) override;
 };
 
 } // namespace InterpreterSpace

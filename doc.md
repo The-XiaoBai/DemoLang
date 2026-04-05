@@ -42,7 +42,7 @@ DemoLang is a simple interpreted programming language. Start the REPL:
 
 **Identifiers**: Variable names with alphanumeric characters and underscores: `x`, `variable_name`, `value123`
 
-**Operators**: `+ - * / == != > < >= <= = ! & | ( )`
+**Operators**: `+ - * / == != > < >= <= = ! & | ( ) @`
 
 ### Data Types
 
@@ -82,6 +82,8 @@ x = 3.14         # Reassign to different type
 
 **Logical**: `&` (AND), `|` (OR), `!` (NOT)
 
+**Return**: `@` (return value from function)
+
 **Assignment**: `=`
 
 **Precedence** (highest to lowest):
@@ -91,7 +93,8 @@ x = 3.14         # Reassign to different type
 4. `<`, `<=`, `>`, `>=`
 5. `==`, `!=`
 6. `&`, `|`
-7. `=`
+7. `@` (return)
+8. `=`
 
 ## Built-in Functions
 
@@ -132,7 +135,7 @@ DemoLang supports user-defined functions with the following syntax:
 
 ### Function Definition
 
-Functions are defined using the `func = (parameters) { body }` syntax:
+Functions are defined using assignment to lambda expressions:
 
 ```
 # Basic function without parameters
@@ -145,13 +148,28 @@ add = (a, b) { @ a + b }
 greet = (name = "World") { @ "Hello, " + name + "!" }
 ```
 
-### Return Values
+**Lambda Syntax**: `(parameters) { @ return_value }`
+- Parameters are enclosed in parentheses
+- Default values can be specified using `=` (e.g., `x = 10`)
+- Function body is enclosed in curly braces
+- **`@` operator is required to return a value**
+- Functions without `@` execute the body but return empty string
+- Functions without `@` can still contain statements (e.g., `print`)
 
-Functions use the `@` operator to return values:
+### Lambda Functions
+
+DemoLang supports anonymous lambda functions that can be:
+1. Assigned to variables for later use
+2. Immediately executed with arguments
+3. Passed as values (first-class functions)
 
 ```
+# Lambda assigned to a variable
 square = (x) { @ x * x }
 result = square(5)           # result = 25
+
+# Lambda with immediate execution
+result = (a, b) { @ a + b }(10, 20)  # Returns 30
 ```
 
 ### Function Calls
@@ -160,7 +178,7 @@ Functions are called using positional arguments:
 
 ```
 # Call without arguments
-greet()                      # Output: Hello, World!
+greet()                      # Returns: Hello, World!
 
 # Call with arguments
 add(10, 20)                  # Returns 30
@@ -175,13 +193,13 @@ Functions can specify default values for parameters:
 
 ```
 # Function with default parameter
-power = (base, exponent = 2) { @ base ^ exponent }
+calc = (a = 10, b = 20) { @ a + b }
 
-# Call with default exponent
-power(3)                     # Returns 9 (3^2)
+# Call with defaults
+calc()                       # Returns 30
 
-# Override default exponent
-power(2, 3)                  # Returns 8 (2^3)
+# Override defaults
+calc(5, 3)                   # Returns 8
 ```
 
 ## Error Handling
@@ -259,6 +277,7 @@ y = 20
 result = x + y
 name = "DemoLang"
 greeting = "Hello, " + name
+print(greeting)
 ```
 Then run the file loader:
 ```

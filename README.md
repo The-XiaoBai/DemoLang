@@ -8,9 +8,10 @@
 
 - **REPL Interface**: Interactive command-line environment with immediate feedback
 - **Complete Pipeline**: Lexer, Parser, and Interpreter with clean separation
-- **Operator Precedence**: Arithmetic, logical, and comparison operators with proper precedence
+- **Operator Precedence**: Arithmetic, logical, comparison, and return operators with proper precedence
 - **Basic Types**: Integer, Float, String, etc.
 - **Variables**: Assignment and reference system with dynamic typing
+- **Lambda Functions**: First-class functions with anonymous lambda support and `@` return operator
 - **Error Handling**: Comprehensive error reporting for all stages
 - **Design Patterns**: Singleton, Chain of Responsibility, Visitor, Factory, Flyweight
 - **Full Test Suite**: Complete test coverage with CTest integration
@@ -101,7 +102,7 @@ DemoLang/
 
 ## Documentation
 
-> **[Documentation](doc.md)** - Get started with DemoLang
+> **[Documentation](doc.md)**
 
 ## License
 

@@ -11,6 +11,60 @@ namespace DemoLang {
 void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
     builtins = ValueTypes::getBuiltins();
 
+    // Check if this is a lambda immediate execution: (params){body}(args)
+    if (node.getLambdaNode()) {
+        auto lambdaNode = dynamic_cast<LambdaNode*>(node.getLambdaNode().get());
+        if (lambdaNode) {
+            // Evaluate arguments
+            std::vector<std::shared_ptr<BaseType>> args;
+            for (const auto& arg : node.getArgs()) {
+                arg->accept(*this);
+                args.push_back(result);
+            }
+
+            // Create a temporary function definition from the lambda
+            auto body = std::shared_ptr<ASTNode>(lambdaNode->getBody(), [](ASTNode*){});
+            auto funcDef = std::make_shared<FunctionDefNode>("", lambdaNode->getParams(), lambdaNode->getParamDefaults(), body);
+
+            // Save current scope
+            auto savedScope = env.scope;
+
+            // Bind parameters to arguments
+            const auto& params = funcDef->getParams();
+            const auto& paramDefaults = funcDef->getParamDefaults();
+
+            size_t bindCount = std::min(params.size(), args.size());
+            for (size_t i = 0; i < bindCount; ++i) {
+                env.set(params[i], *args[i]);
+            }
+
+            // Bind default values for missing arguments
+            for (size_t i = bindCount; i < params.size(); ++i) {
+                if (i < paramDefaults.size() && paramDefaults[i] != nullptr) {
+                    paramDefaults[i]->accept(*this);
+                    if (result && !dynamic_cast<Exception*>(result.get())) {
+                        env.set(params[i], *result);
+                    } else {
+                        result = std::make_shared<Exception>("Failed to evaluate default value for parameter: " + params[i]);
+                        env.scope = savedScope;
+                        return;
+                    }
+                } else {
+                    result = std::make_shared<Exception>("Missing required parameter: " + params[i]);
+                    env.scope = savedScope;
+                    return;
+                }
+            }
+
+            // Execute lambda body
+            funcDef->getBody()->accept(*this);
+
+            // Restore scope
+            env.scope = savedScope;
+            return;
+        }
+    }
+
     // Evaluate arguments
     std::vector<std::shared_ptr<BaseType>> args;
     for (const auto& arg : node.getArgs()) {
@@ -34,21 +88,19 @@ void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
             return;
         }
 
-        // Save current scope and return state
+        // Save current scope
         auto savedScope = env.scope;
-        bool savedHasReturnValue = hasReturnValue;
-        hasReturnValue = false;
 
         // Bind parameters to arguments (support positional binding and default values)
         const auto& params = funcDef->getParams();
         const auto& paramDefaults = funcDef->getParamDefaults();
-        
+
         // Bind provided arguments
         size_t bindCount = std::min(params.size(), args.size());
         for (size_t i = 0; i < bindCount; ++i) {
             env.set(params[i], *args[i]);
         }
-        
+
         // Bind default values for missing arguments
         for (size_t i = bindCount; i < params.size(); ++i) {
             if (i < paramDefaults.size() && paramDefaults[i] != nullptr) {
@@ -58,10 +110,12 @@ void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
                     env.set(params[i], *result);
                 } else {
                     result = std::make_shared<Exception>("Failed to evaluate default value for parameter: " + params[i]);
+                    env.scope = savedScope;
                     return;
                 }
             } else {
                 result = std::make_shared<Exception>("Missing required parameter: " + params[i]);
+                env.scope = savedScope;
                 return;
             }
         }
@@ -69,9 +123,8 @@ void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
         // Execute function body
         funcDef->getBody()->accept(*this);
 
-        // Restore scope and return state
+        // Restore scope
         env.scope = savedScope;
-        hasReturnValue = savedHasReturnValue;
         return;
     }
 
@@ -105,11 +158,9 @@ void InterpreterSpace::Interpreter::visit(FunctionDefNode& node) {
     result = std::make_shared<String>("");
 }
 
-void InterpreterSpace::Interpreter::visit(ReturnNode& node) {
-    // Evaluate return value
-    node.getValue()->accept(*this);
-    // Set return flag
-    hasReturnValue = true;
+void InterpreterSpace::Interpreter::visit(LambdaNode& node) {
+    // Return lambda representation; immediate execution is handled by FunctionCallNode
+    result = std::make_shared<String>("[lambda]");
 }
 
 } // namespace DemoLang
