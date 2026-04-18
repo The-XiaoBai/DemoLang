@@ -10,6 +10,31 @@ namespace DemoLang {
 
 namespace ParserSpace {
 
+// Helper to parse index access and chain: identifier[index][index][...]
+static std::shared_ptr<ASTNode> parseIndexAccess(std::shared_ptr<ASTNode> object, Parser& parser) {
+    if (parser.current().type == TokenType::OPERATOR && parser.current().value == "[") {
+        parser.advance(); // Consume '['
+        auto indexExpr = parser.parseExpression();
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != "]") {
+            return std::make_shared<ErrorNode>("Expected ']' in index access");
+        }
+        parser.advance(); // Consume ']'
+        auto indexNode = std::make_shared<IndexNode>(object, indexExpr);
+        // Check for chained index: [0][1][2]
+        while (parser.current().type == TokenType::OPERATOR && parser.current().value == "[") {
+            parser.advance(); // Consume '['
+            auto nextIndex = parser.parseExpression();
+            if (parser.current().type != TokenType::OPERATOR || parser.current().value != "]") {
+                return std::make_shared<ErrorNode>("Expected ']' in index access");
+            }
+            parser.advance(); // Consume ']'
+            indexNode = std::make_shared<IndexNode>(indexNode, nextIndex);
+        }
+        return indexNode;
+    }
+    return object;
+}
+
 /**
  * @brief Flyweight factory for AST nodes
  */
@@ -246,6 +271,36 @@ private:
 std::shared_ptr<ASTNode> ParserSpace::PrimaryParser::handle() {
     Token token = parser.current();
     
+    // Handle list literal: [1, 2, 3]
+    if (token.type == TokenType::OPERATOR && token.value == "[") {
+        parser.advance(); // Consume '['
+        
+        std::vector<std::shared_ptr<ASTNode>> elements;
+        
+        // Handle empty list
+        if (parser.current().type == TokenType::OPERATOR && parser.current().value == "]") {
+            parser.advance(); // Consume ']'
+            return std::make_shared<ListNode>(elements);
+        }
+        
+        // Parse elements until ']'
+        while (!(parser.current().type == TokenType::OPERATOR && parser.current().value == "]")) {
+            elements.push_back(parser.parseExpression());
+            if (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
+                parser.advance(); // Consume ','
+            } else {
+                break;
+            }
+        }
+        
+        // Expect closing ']'
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != "]")
+            return std::make_shared<ErrorNode>("Expected ']' in list literal");
+        parser.advance(); // Consume ']'
+        
+        return std::make_shared<ListNode>(elements);
+    }
+
     // Handle function calls: identifier followed by '('
     if (token.type == TokenType::IDENTIFIER) {
         std::string funcName = token.value;
@@ -268,7 +323,10 @@ std::shared_ptr<ASTNode> ParserSpace::PrimaryParser::handle() {
             if (parser.current().type == TokenType::IDENTIFIER) {
                 std::string paramName = parser.current().value;
                 parser.advance(); // Consume parameter name
-                if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
+                // Check for index access: identifier[index] or identifier[index][index]
+                if (parser.current().type == TokenType::OPERATOR && parser.current().value == "[") {
+                    args.push_back(parseIndexAccess(ASTFlyweight::getIdNode(paramName), parser));
+                } else if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
                     parser.advance(); // Consume '='
                     args.push_back(parser.parseExpression());
                 } else {
@@ -292,7 +350,10 @@ std::shared_ptr<ASTNode> ParserSpace::PrimaryParser::handle() {
                 if (parser.current().type == TokenType::IDENTIFIER) {
                     std::string paramName = parser.current().value;
                     parser.advance(); // Consume parameter name
-                    if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
+                    // Check for index access: identifier[index] or identifier[index][index]
+                    if (parser.current().type == TokenType::OPERATOR && parser.current().value == "[") {
+                        args.push_back(parseIndexAccess(ASTFlyweight::getIdNode(paramName), parser));
+                    } else if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
                         parser.advance(); // Consume '='
                         args.push_back(parser.parseExpression());
                     } else {
@@ -314,6 +375,27 @@ std::shared_ptr<ASTNode> ParserSpace::PrimaryParser::handle() {
             } else {
                 return std::make_shared<ErrorNode>("Expected ')' in function call");
             }
+        }
+
+        // Not a function call, check for index access: identifier[index] or a[0][1][2]
+        if (parser.current().type == TokenType::OPERATOR && parser.current().value == "[") {
+            parser.advance(); // Consume '['
+            auto indexExpr = parser.parseExpression();
+            if (parser.current().type != TokenType::OPERATOR || parser.current().value != "]")
+                return std::make_shared<ErrorNode>("Expected ']' in index access");
+            parser.advance(); // Consume ']'
+            
+            // Check for chained index access: a[0][1][2]
+            auto object = std::make_shared<IndexNode>(ASTFlyweight::getIdNode(funcName), indexExpr);
+            while (parser.current().type == TokenType::OPERATOR && parser.current().value == "[") {
+                parser.advance(); // Consume '['
+                auto nextIndex = parser.parseExpression();
+                if (parser.current().type != TokenType::OPERATOR || parser.current().value != "]")
+                    return std::make_shared<ErrorNode>("Expected ']' in index access");
+                parser.advance(); // Consume ']'
+                object = std::make_shared<IndexNode>(object, nextIndex);
+            }
+            return object;
         }
 
         // Not a function call, return identifier

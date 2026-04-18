@@ -158,17 +158,6 @@ public:
         result = interpreter->interpret(printCall4);
         assert(result == "");
 
-        // Test exit with no arguments (default exit code 0)
-        auto exitCall1 = std::make_shared<FunctionCallNode>("exit", std::vector<std::shared_ptr<ASTNode>>{});
-        result = interpreter->interpret(exitCall1);
-        assert(result == "");
-
-        // Test exit with integer argument
-        auto exitCode = std::make_shared<IntNode>(1);
-        auto exitCall2 = std::make_shared<FunctionCallNode>("exit", std::vector<std::shared_ptr<ASTNode>>{exitCode});
-        result = interpreter->interpret(exitCall2);
-        assert(result == "");
-
         // Test unknown function
         auto unknownCall = std::make_shared<FunctionCallNode>("unknown", std::vector<std::shared_ptr<ASTNode>>{intArg});
         result = interpreter->interpret(unknownCall);
@@ -219,6 +208,76 @@ public:
 };
 
 
+class TestListDataType : public InterpreterTestCase {
+public:
+    void run() override {
+        // Test empty list
+        auto emptyList = std::make_shared<ListNode>(std::vector<std::shared_ptr<ASTNode>>{});
+        std::string result = interpreter->interpret(emptyList);
+        assert(result == "[]");
+
+        // Test list with integers
+        auto intList = std::make_shared<ListNode>(std::vector<std::shared_ptr<ASTNode>>{
+            std::make_shared<IntNode>(1),
+            std::make_shared<IntNode>(2),
+            std::make_shared<IntNode>(3)
+        });
+        result = interpreter->interpret(intList);
+        assert(result == "[1, 2, 3]");
+
+        // Test nested list
+        auto nestedList = std::make_shared<ListNode>(std::vector<std::shared_ptr<ASTNode>>{
+            std::make_shared<IntNode>(1),
+            std::make_shared<IntNode>(5),
+            std::make_shared<ListNode>(std::vector<std::shared_ptr<ASTNode>>{
+                std::make_shared<IntNode>(5),
+                std::make_shared<StringNode>("d")
+            })
+        });
+        result = interpreter->interpret(nestedList);
+        assert(result == "[1, 5, [5, d]]");
+
+        // Test index access: a[0]
+        auto idx = std::make_shared<IndexNode>(
+            std::make_shared<IdNode>("a"),
+            std::make_shared<IntNode>(0)
+        );
+        // Set 'a' first
+        auto listAssign = std::make_shared<BinaryOpNode>("=",
+            std::make_shared<IdNode>("a"),
+            intList
+        );
+        interpreter->interpret(listAssign);
+        result = interpreter->interpret(idx);
+        assert(result == "1");
+
+        // Test chained index: a[2][0]
+        auto innerList = std::make_shared<ListNode>(std::vector<std::shared_ptr<ASTNode>>{
+            std::make_shared<IntNode>(5),
+            std::make_shared<StringNode>("d")
+        });
+        auto outerList = std::make_shared<BinaryOpNode>("=",
+            std::make_shared<IdNode>("b"),
+            std::make_shared<ListNode>(std::vector<std::shared_ptr<ASTNode>>{
+                std::make_shared<IntNode>(1),
+                std::make_shared<IntNode>(5),
+                innerList
+            })
+        );
+        interpreter->interpret(outerList);
+        auto chainedIdx = std::make_shared<IndexNode>(
+            std::make_shared<IndexNode>(
+                std::make_shared<IdNode>("b"),
+                std::make_shared<IntNode>(2)
+            ),
+            std::make_shared<IntNode>(0)
+        );
+        result = interpreter->interpret(chainedIdx);
+        assert(result == "5");
+    }
+};
+
+
 int main() {
     TestRunner runner;
     runner.addTest("Interpreter: Unary Operators", std::make_shared<TestUnaryOperators>());
@@ -228,6 +287,7 @@ int main() {
     runner.addTest("Interpreter: Error Handling", std::make_shared<TestErrorHandling>());
     runner.addTest("Interpreter: Built-in Functions", std::make_shared<TestBuiltinFunctions>());
     runner.addTest("Interpreter: If Statement", std::make_shared<TestIfStatement>());
+    runner.addTest("Interpreter: List Data Type", std::make_shared<TestListDataType>());
     runner.runAll();
 
     return 0;

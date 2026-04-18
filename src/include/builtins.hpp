@@ -102,6 +102,24 @@ public:
     std::shared_ptr<BaseType> clone() const override;
 };
 
+
+/**
+ * @brief List value type.
+**/
+class List : public BaseType {
+private:
+    std::string name;
+    std::vector<std::shared_ptr<BaseType>> value;
+
+public:
+    List();
+    explicit List(const std::vector<std::shared_ptr<BaseType>>& val);
+    std::string getName() const override;
+    std::any getValue() const override;
+    std::shared_ptr<BaseType> clone() const override;
+};
+
+
 /**
  * @brief Get built-in functions map.
  * @return Map of built-in function names to their implementations.

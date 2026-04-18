@@ -76,6 +76,8 @@ public:
     void visit(BreakNode& node) override;
     void visit(ContinueNode& node) override;
     void visit(StatementSequenceNode& node) override;
+    void visit(ListNode& node) override;
+    void visit(IndexNode& node) override;
 };
 
 } // namespace InterpreterSpace

@@ -39,6 +39,8 @@ public:
     virtual void visit(class BreakNode& node) = 0;
     virtual void visit(class ContinueNode& node) = 0;
     virtual void visit(class StatementSequenceNode& node) = 0;
+    virtual void visit(class ListNode& node) = 0;
+    virtual void visit(class IndexNode& node) = 0;
 };
 
 
@@ -279,6 +281,38 @@ public:
     StatementSequenceNode(std::vector<std::shared_ptr<ASTNode>> stmts);
     void accept(ASTVisitor& visitor) override;
     const std::vector<std::shared_ptr<ASTNode>>& getStatements() const;
+};
+
+
+/**
+ * @brief Node representing list literals.
+ * Syntax: [1, 2, 3]
+**/
+class ListNode : public ASTNode {
+private:
+    std::vector<std::shared_ptr<ASTNode>> elements;
+    
+public:
+    ListNode(std::vector<std::shared_ptr<ASTNode>> elems);
+    void accept(ASTVisitor& visitor) override;
+    const std::vector<std::shared_ptr<ASTNode>>& getElements() const;
+};
+
+
+/**
+ * @brief Node representing index access.
+ * Syntax: a[0]
+**/
+class IndexNode : public ASTNode {
+private:
+    std::shared_ptr<ASTNode> object;
+    std::shared_ptr<ASTNode> index;
+    
+public:
+    IndexNode(std::shared_ptr<ASTNode> obj, std::shared_ptr<ASTNode> idx);
+    void accept(ASTVisitor& visitor) override;
+    ASTNode* getObject() const;
+    ASTNode* getIndex() const;
 };
 
 } // namespace AST

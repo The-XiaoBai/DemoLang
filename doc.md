@@ -42,13 +42,32 @@ DemoLang is a simple interpreted programming language. Start the REPL:
 
 **Identifiers**: Variable names with alphanumeric characters and underscores: `x`, `variable_name`, `value123`
 
-**Operators**: `+ - * / == != > < >= <= = ! & | ( ) @ ;`
+**Operators**: `+ - * / == != > < >= <= = ! & | ( ) [ ] @ ;`
 
 ### Data Types
 
 - **Integer**: 64-bit signed integer
 - **Float**: 80-bit floating point
 - **String**: UTF-8 encoded
+- **List**: Dynamic array of mixed types, supports nesting
+
+### List
+
+Lists are ordered collections enclosed in brackets:
+
+```
+nums = [1, 2, 3]           # List of integers
+mixed = [1, "hello", 3.14] # Mixed types
+nested = [1, [2, 3], [4]]  # Nested lists
+
+# Index access (0-based)
+print(nums[0])             # Output: 1
+print(nums[2])             # Output: 3
+
+# Chained index access
+print(nested[1][0])        # Output: 2
+print(nested[2][0])        # Output: 4
+```
 
 ### Variables
 

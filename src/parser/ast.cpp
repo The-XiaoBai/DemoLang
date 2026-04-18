@@ -217,5 +217,31 @@ const std::vector<std::shared_ptr<ASTNode>>& StatementSequenceNode::getStatement
     return statements;
 }
 
+ListNode::ListNode(std::vector<std::shared_ptr<ASTNode>> elems)
+    : elements(std::move(elems)) {}
+
+void ListNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::vector<std::shared_ptr<ASTNode>>& ListNode::getElements() const {
+    return elements;
+}
+
+IndexNode::IndexNode(std::shared_ptr<ASTNode> obj, std::shared_ptr<ASTNode> idx)
+    : object(std::move(obj)), index(std::move(idx)) {}
+
+void IndexNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+ASTNode* IndexNode::getObject() const {
+    return object.get();
+}
+
+ASTNode* IndexNode::getIndex() const {
+    return index.get();
+}
+
 } // namespace AST
 } // namespace DemoLang
