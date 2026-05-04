@@ -41,6 +41,10 @@ std::shared_ptr<BaseType> Integer::clone() const {
     return std::make_shared<Integer>(value);
 }
 
+std::string Integer::toString() const {
+    return std::to_string(value);
+}
+
 Float::Float(long double val) : name("Float"), value(val) {}
 
 std::string Float::getName() const {
@@ -53,6 +57,10 @@ std::any Float::getValue() const {
 
 std::shared_ptr<BaseType> Float::clone() const {
     return std::make_shared<Float>(value);
+}
+
+std::string Float::toString() const {
+    return std::to_string(value);
 }
 
 String::String(const std::string& val) : name("String"), value(val) {}
@@ -69,6 +77,10 @@ std::shared_ptr<BaseType> String::clone() const {
     return std::make_shared<String>(value);
 }
 
+std::string String::toString() const {
+    return value;
+}
+
 Exception::Exception(const std::string& val) : name("Exception"), value(val) {}
 
 std::string Exception::getName() const {
@@ -81,6 +93,10 @@ std::any Exception::getValue() const {
 
 std::shared_ptr<BaseType> Exception::clone() const {
     return std::make_shared<Exception>(value);
+}
+
+std::string Exception::toString() const {
+    return value;
 }
 
 List::List(const std::vector<std::shared_ptr<BaseType>>& val) : name("List"), value(val) {}
@@ -97,32 +113,21 @@ std::shared_ptr<BaseType> List::clone() const {
     return std::make_shared<List>(value);
 }
 
-// Helper to convert BaseType to string
-std::string toString(const std::shared_ptr<BaseType>& val) {
-    if (auto str = dynamic_cast<String*>(val.get())) {
-        return std::any_cast<std::string>(str->getValue());
-    } else if (auto integer = dynamic_cast<Integer*>(val.get())) {
-        return std::to_string(std::any_cast<long long>(integer->getValue()));
-    } else if (auto flo = dynamic_cast<Float*>(val.get())) {
-        return std::to_string(std::any_cast<long double>(flo->getValue()));
-    } else if (auto list = dynamic_cast<List*>(val.get())) {
-        auto items = std::any_cast<std::vector<std::shared_ptr<BaseType>>>(list->getValue());
-        std::string res = "[";
-        for (size_t i = 0; i < items.size(); ++i) {
-            res += toString(items[i]);
-            if (i < items.size() - 1) res += ", ";
-        }
-        res += "]";
-        return res;
+std::string List::toString() const {
+    std::string res = "[";
+    for (size_t i = 0; i < value.size(); ++i) {
+        res += value[i]->toString();
+        if (i < value.size() - 1) res += ", ";
     }
-    return "?";
+    res += "]";
+    return res;
 }
 
 std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> getBuiltins() {
     std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> builtins;
     builtins["print"] = [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
         for (size_t i = 0; i < args.size(); ++i) {
-            std::cout << toString(args[i]);
+            std::cout << args[i]->toString();
             if (i < args.size() - 1) std::cout << " ";
         }
         std::cout << std::endl;

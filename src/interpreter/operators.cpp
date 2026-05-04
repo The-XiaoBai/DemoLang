@@ -16,8 +16,19 @@ private:
     // Helper functions
     static bool isNumeric(std::shared_ptr<BaseType> operand);
     static std::shared_ptr<BaseType> toFloat(std::shared_ptr<BaseType> operand);
-    static std::shared_ptr<BaseType> toInt(std::shared_ptr<BaseType> operand);
     static bool toBool(std::shared_ptr<BaseType> operand);
+    
+    // Generic arithmetic: + - *
+    static std::shared_ptr<BaseType> arithmetic(
+        std::shared_ptr<BaseType> left, std::shared_ptr<BaseType> right,
+        std::function<long long(long long, long long)> intOp,
+        std::function<long double(long double, long double)> floatOp);
+    
+    // Generic comparison: == != > < >= <=
+    static std::shared_ptr<BaseType> compare(
+        std::shared_ptr<BaseType> left, std::shared_ptr<BaseType> right,
+        std::function<bool(long double, long double)> cmp,
+        std::function<bool(const std::string&, const std::string&)> strCmp = nullptr);
     
 public:
     static void initialize();
@@ -33,19 +44,7 @@ bool BinOperatorFactory::isNumeric(std::shared_ptr<BaseType> operand) {
     return operand->getName() == "Integer" || operand->getName() == "Float";
 }
 
-std::shared_ptr<BaseType> BinOperatorFactory::toInt(std::shared_ptr<BaseType> operand) {
-    if (!operand) return std::make_shared<Exception>("Null operand");
-    
-    if (operand->getName() == "Integer") return operand;
-    if (operand->getName() == "Float") {
-        return std::make_shared<Integer>(static_cast<long long>(std::any_cast<long double>(operand->getValue())));
-    }
-    return std::make_shared<Exception>("Type conversion error");
-}
-
 std::shared_ptr<BaseType> BinOperatorFactory::toFloat(std::shared_ptr<BaseType> operand) {
-    if (!operand) return std::make_shared<Exception>("Null operand");
-    
     if (operand->getName() == "Float") return operand;
     if (operand->getName() == "Integer") {
         return std::make_shared<Float>(static_cast<long double>(std::any_cast<long long>(operand->getValue())));
@@ -64,155 +63,79 @@ bool BinOperatorFactory::toBool(std::shared_ptr<BaseType> operand) {
     return false;
 }
 
+// Generic arithmetic: + - *
+std::shared_ptr<BaseType> BinOperatorFactory::arithmetic(
+    std::shared_ptr<BaseType> left, std::shared_ptr<BaseType> right,
+    std::function<long long(long long, long long)> intOp,
+    std::function<long double(long double, long double)> floatOp)
+{
+    if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
+    if (left->getName() == "Integer" && right->getName() == "Integer") {
+        return std::make_shared<Integer>(
+            intOp(std::any_cast<long long>(left->getValue()), std::any_cast<long long>(right->getValue())));
+    }
+    auto l = toFloat(left), r = toFloat(right);
+    return std::make_shared<Float>(
+        floatOp(std::any_cast<long double>(l->getValue()), std::any_cast<long double>(r->getValue())));
+}
+
+// Generic comparison: == != > < >= <=
+std::shared_ptr<BaseType> BinOperatorFactory::compare(
+    std::shared_ptr<BaseType> left, std::shared_ptr<BaseType> right,
+    std::function<bool(long double, long double)> cmp,
+    std::function<bool(const std::string&, const std::string&)> strCmp)
+{
+    if (strCmp && left->getName() == "String" && right->getName() == "String") {
+        return std::make_shared<Integer>(
+            strCmp(std::any_cast<std::string>(left->getValue()), std::any_cast<std::string>(right->getValue())) ? 1 : 0);
+    }
+    if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
+    auto l = toFloat(left), r = toFloat(right);
+    return std::make_shared<Integer>(
+        cmp(std::any_cast<long double>(l->getValue()), std::any_cast<long double>(r->getValue())) ? 1 : 0);
+}
+
 // Initialize all operators
 void BinOperatorFactory::initialize() {
     if (!operators.empty()) return;
     
-    // Arithmetic operators
-    operators["+"] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        if (left->getName() == "String" && right->getName() == "String") {
-            return std::make_shared<String>(
-                std::any_cast<std::string>(left->getValue()) + 
-                std::any_cast<std::string>(right->getValue())
-            );
+    // Arithmetic: + - *
+    operators["+"] = [](auto l, auto r) -> std::shared_ptr<BaseType> {
+        if (l->getName() == "String" && r->getName() == "String") {
+            return std::make_shared<String>(std::any_cast<std::string>(l->getValue()) + std::any_cast<std::string>(r->getValue()));
         }
-        if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
-        
-        // Return Integer if both operands are Integer, otherwise Float
-        if (left->getName() == "Integer" && right->getName() == "Integer") {
-            auto lVal = std::any_cast<long long>(left->getValue());
-            auto rVal = std::any_cast<long long>(right->getValue());
-            return std::make_shared<Integer>(lVal + rVal);
-        } else {
-            auto l = toFloat(left), r = toFloat(right);
-            return std::make_shared<Float>(
-                std::any_cast<long double>(l->getValue()) + 
-                std::any_cast<long double>(r->getValue())
-            );
-        }
+        return arithmetic(l, r, [](long long a, long long b) { return a + b; }, [](long double a, long double b) { return a + b; });
+    };
+    operators["-"] = [](auto l, auto r) -> std::shared_ptr<BaseType> {
+        return arithmetic(l, r, [](long long a, long long b) { return a - b; }, [](long double a, long double b) { return a - b; });
+    };
+    operators["*"] = [](auto l, auto r) -> std::shared_ptr<BaseType> {
+        return arithmetic(l, r, [](long long a, long long b) { return a * b; }, [](long double a, long double b) { return a * b; });
     };
     
-    operators["-"] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
-        
-        // Return Integer if both operands are Integer, otherwise Float
-        if (left->getName() == "Integer" && right->getName() == "Integer") {
-            auto lVal = std::any_cast<long long>(left->getValue());
-            auto rVal = std::any_cast<long long>(right->getValue());
-            return std::make_shared<Integer>(lVal - rVal);
-        } else {
-            auto l = toFloat(left), r = toFloat(right);
-            return std::make_shared<Float>(
-                std::any_cast<long double>(l->getValue()) - 
-                std::any_cast<long double>(r->getValue())
-            );
-        }
-    };
-    
-    operators["*"] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
-        
-        // Return Integer if both operands are Integer, otherwise Float
-        if (left->getName() == "Integer" && right->getName() == "Integer") {
-            auto lVal = std::any_cast<long long>(left->getValue());
-            auto rVal = std::any_cast<long long>(right->getValue());
-            return std::make_shared<Integer>(lVal * rVal);
-        } else {
-            auto l = toFloat(left), r = toFloat(right);
-            return std::make_shared<Float>(
-                std::any_cast<long double>(l->getValue()) * 
-                std::any_cast<long double>(r->getValue())
-            );
-        }
-    };
-    
-    operators["/"] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
-        auto r = toFloat(right);
-        auto rVal = std::any_cast<long double>(r->getValue());
+    operators["/"] = [](auto l, auto r) -> std::shared_ptr<BaseType> {
+        if (!isNumeric(l) || !isNumeric(r)) return std::make_shared<Exception>("Type error");
+        auto rVal = std::any_cast<long double>(toFloat(r)->getValue());
         if (rVal == 0.0) return std::make_shared<Exception>("Division by zero");
-        
-        auto l = toFloat(left);
-        return std::make_shared<Float>(
-            std::any_cast<long double>(l->getValue()) / rVal
-        );
+        auto lVal = std::any_cast<long double>(toFloat(l)->getValue());
+        return std::make_shared<Float>(lVal / rVal);
     };
     
-    // Comparison operators
-    operators["=="] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        if (left->getName() == "String" && right->getName() == "String") {
-            return std::make_shared<Integer>(
-                std::any_cast<std::string>(left->getValue()) == 
-                std::any_cast<std::string>(right->getValue()) ? 1 : 0
-            );
-        }
-        if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
-        auto l = toFloat(left), r = toFloat(right);
-        return std::make_shared<Integer>(
-            std::any_cast<long double>(l->getValue()) == 
-            std::any_cast<long double>(r->getValue()) ? 1 : 0
-        );
+    // Comparison: == != > < >= <=
+    operators["=="] = [](auto l, auto r) -> std::shared_ptr<BaseType> {
+        return compare(l, r, [](long double a, long double b) { return a == b; }, [](const std::string& a, const std::string& b) { return a == b; });
     };
+    operators["!="] = [](auto l, auto r) -> std::shared_ptr<BaseType> {
+        return compare(l, r, [](long double a, long double b) { return a != b; }, [](const std::string& a, const std::string& b) { return a != b; });
+    };
+    operators[">"]  = [](auto l, auto r) -> std::shared_ptr<BaseType> { return compare(l, r, [](long double a, long double b) { return a > b; }); };
+    operators["<"]  = [](auto l, auto r) -> std::shared_ptr<BaseType> { return compare(l, r, [](long double a, long double b) { return a < b; }); };
+    operators[">="] = [](auto l, auto r) -> std::shared_ptr<BaseType> { return compare(l, r, [](long double a, long double b) { return a >= b; }); };
+    operators["<="] = [](auto l, auto r) -> std::shared_ptr<BaseType> { return compare(l, r, [](long double a, long double b) { return a <= b; }); };
     
-    operators["!="] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        if (left->getName() == "String" && right->getName() == "String") {
-            return std::make_shared<Integer>(
-                std::any_cast<std::string>(left->getValue()) != 
-                std::any_cast<std::string>(right->getValue()) ? 1 : 0
-            );
-        }
-        if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
-        auto l = toFloat(left), r = toFloat(right);
-        return std::make_shared<Integer>(
-            std::any_cast<long double>(l->getValue()) != 
-            std::any_cast<long double>(r->getValue()) ? 1 : 0
-        );
-    };
-    
-    operators[">"] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
-        auto l = toFloat(left), r = toFloat(right);
-        return std::make_shared<Integer>(
-            std::any_cast<long double>(l->getValue()) > 
-            std::any_cast<long double>(r->getValue()) ? 1 : 0
-        );
-    };
-    
-    operators["<"] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
-        auto l = toFloat(left), r = toFloat(right);
-        return std::make_shared<Integer>(
-            std::any_cast<long double>(l->getValue()) < 
-            std::any_cast<long double>(r->getValue()) ? 1 : 0
-        );
-    };
-    
-    operators[">="] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
-        auto l = toFloat(left), r = toFloat(right);
-        return std::make_shared<Integer>(
-            std::any_cast<long double>(l->getValue()) >= 
-            std::any_cast<long double>(r->getValue()) ? 1 : 0
-        );
-    };
-    
-    operators["<="] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
-        auto l = toFloat(left), r = toFloat(right);
-        return std::make_shared<Integer>(
-            std::any_cast<long double>(l->getValue()) <= 
-            std::any_cast<long double>(r->getValue()) ? 1 : 0
-        );
-    };
-    
-    // Logical operators
-    operators["&"] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        return std::make_shared<Integer>(toBool(left) && toBool(right) ? 1 : 0);
-    };
-    
-    operators["|"] = [](auto left, auto right) -> std::shared_ptr<BaseType> {
-        return std::make_shared<Integer>(toBool(left) || toBool(right) ? 1 : 0);
-    };
+    // Logical: & |
+    operators["&"] = [](auto l, auto r) -> std::shared_ptr<BaseType> { return std::make_shared<Integer>(toBool(l) && toBool(r) ? 1 : 0); };
+    operators["|"] = [](auto l, auto r) -> std::shared_ptr<BaseType> { return std::make_shared<Integer>(toBool(l) || toBool(r) ? 1 : 0); };
 }
 
 // Execute operator

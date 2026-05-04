@@ -32,6 +32,7 @@ public:
     virtual bool operator!=(const BaseType& other) const;
     virtual std::string getName() const = 0;
     virtual std::any getValue() const = 0;
+    virtual std::string toString() const = 0;
     virtual std::shared_ptr<BaseType> clone() const = 0;
 };
 
@@ -49,6 +50,7 @@ public:
     explicit Integer(long long val);
     std::string getName() const override;
     std::any getValue() const override;
+    std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
 
@@ -66,6 +68,7 @@ public:
     explicit Float(long double val);
     std::string getName() const override;
     std::any getValue() const override;
+    std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
 
@@ -83,6 +86,7 @@ public:
     explicit String(const std::string& val);
     std::string getName() const override;
     std::any getValue() const override;
+    std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
 
@@ -99,6 +103,7 @@ public:
     explicit Exception(const std::string& val);
     std::string getName() const override;
     std::any getValue() const override;
+    std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
 
@@ -116,6 +121,7 @@ public:
     explicit List(const std::vector<std::shared_ptr<BaseType>>& val);
     std::string getName() const override;
     std::any getValue() const override;
+    std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
 
