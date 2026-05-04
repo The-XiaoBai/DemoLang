@@ -38,6 +38,7 @@ public:
     size_t pos() const;
     char current() const;
     void advance(size_t step=1);
+    static std::shared_ptr<Token> getToken(TokenType type, const std::string& value = "");
     Token nextToken();
     std::vector<Token> tokenize(const std::string &input);
 };
