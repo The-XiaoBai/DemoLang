@@ -39,6 +39,8 @@ public:
     Token current() const;
     void advance();
     bool match(TokenType type, const std::string& value);
+    size_t savePosition() const;
+    void restorePosition(size_t pos);
     std::shared_ptr<ASTNode> parse(const std::vector<Token> &tokens);
     std::shared_ptr<ASTNode> parseExpression();
     std::shared_ptr<ASTNode> parseExpressionInternal();
@@ -85,13 +87,84 @@ public:
 
 
 /**
- * @brief Parser for primary expressions.
+ * @brief Parser for list literals.
 **/
-class PrimaryParser : public BaseParser {
+class ListParser : public BaseParser {
 public:
-    PrimaryParser(Parser& parser);
+    ListParser(Parser& parser);
     std::shared_ptr<ASTNode> handle() override;
 };
+
+
+/**
+ * @brief Parser for function calls.
+**/
+class FunctionCallParser : public BaseParser {
+public:
+    FunctionCallParser(Parser& parser);
+    std::shared_ptr<ASTNode> handle() override;
+};
+
+
+/**
+ * @brief Parser for identifiers and index access.
+**/
+class IdentifierParser : public BaseParser {
+public:
+    IdentifierParser(Parser& parser);
+    std::shared_ptr<ASTNode> handle() override;
+};
+
+
+/**
+ * @brief Parser for if statements.
+**/
+class IfParser : public BaseParser {
+public:
+    IfParser(Parser& parser);
+    std::shared_ptr<ASTNode> handle() override;
+};
+
+
+/**
+ * @brief Parser for while statements.
+**/
+class WhileParser : public BaseParser {
+public:
+    WhileParser(Parser& parser);
+    std::shared_ptr<ASTNode> handle() override;
+};
+
+
+/**
+ * @brief Parser for break/continue statements.
+**/
+class LoopControlParser : public BaseParser {
+public:
+    LoopControlParser(Parser& parser);
+    std::shared_ptr<ASTNode> handle() override;
+};
+
+
+/**
+ * @brief Parser for parenthesized expressions and lambdas.
+**/
+class ParenthesizedParser : public BaseParser {
+public:
+    ParenthesizedParser(Parser& parser);
+    std::shared_ptr<ASTNode> handle() override;
+};
+
+
+/**
+ * @brief Fallback parser for literal values.
+**/
+class LiteralFallbackParser : public BaseParser {
+public:
+    LiteralFallbackParser(Parser& parser);
+    std::shared_ptr<ASTNode> handle() override;
+};
+
 
 } // namespace ParserSpace
 

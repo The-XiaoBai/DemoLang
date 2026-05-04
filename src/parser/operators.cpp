@@ -60,7 +60,7 @@ std::shared_ptr<ASTNode> ParserSpace::BinaryParser::handle() {
                         std::shared_ptr<ASTNode> defaultValue = nullptr;
                         if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
                             parser.advance(); // Consume '='
-                            defaultValue = parser.parseExpression();
+                            defaultValue = parser.parseExpressionInternal();
                         }
                         params.push_back(paramName);
                         paramDefaults.push_back(defaultValue);
@@ -78,7 +78,7 @@ std::shared_ptr<ASTNode> ParserSpace::BinaryParser::handle() {
                             std::shared_ptr<ASTNode> defaultValue = nullptr;
                             if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
                                 parser.advance(); // Consume '='
-                                defaultValue = parser.parseExpression();
+                                defaultValue = parser.parseExpressionInternal();
                             }
                             params.push_back(paramName);
                             paramDefaults.push_back(defaultValue);
@@ -123,6 +123,7 @@ std::shared_ptr<ASTNode> ParserSpace::BinaryParser::handle() {
                     return std::make_shared<ErrorNode>("Expected '{' in function definition");
                 }
             }
+            // Not a function definition, continue to parse as regular assignment
         }
         
         auto right = nextHandler->handle();  // Parse right operand

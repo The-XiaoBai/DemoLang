@@ -22,8 +22,6 @@ UnaryParser::UnaryParser(Parser& parser, std::vector<std::string> operators)
 BinaryParser::BinaryParser(Parser& parser, std::vector<std::string> operators)
     : BaseParser(parser), operators(operators) {}
 
-PrimaryParser::PrimaryParser(Parser& parser) : BaseParser(parser) {}
-
 } // namespace ParserSpace
 
 Token ParserSpace::Parser::current() const { return current_pos < tokens.size() ? tokens[current_pos] : Token(TokenType::END, ""); }
@@ -35,6 +33,14 @@ bool ParserSpace::Parser::match(TokenType type, const std::string& value) {
     bool matches = (curr.type == type && curr.value == value);
     if (matches) advance(); // Move to next token if match found
     return matches;
+}
+
+size_t ParserSpace::Parser::savePosition() const {
+    return current_pos;
+}
+
+void ParserSpace::Parser::restorePosition(size_t pos) {
+    current_pos = pos;
 }
 
 
@@ -80,8 +86,6 @@ std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpression() {
 }
 
 std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpressionInternal() {
-    // Create operator precedence chain using chain of responsibility pattern
-    // Operators are added in order of precedence (lowest to highest)
     Utils::Chain<ASTNode> chain;
     // Assignment operators (lowest precedence)
     chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"="}));
@@ -97,8 +101,15 @@ std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpressionInternal() {
     chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"*", "/"}));
     // Unary operators (highest precedence)
     chain.addHandler(std::make_shared<UnaryParser>(*this, std::vector<std::string>{"!", "-"}));
-    // Primary expressions (literals, identifiers)
-    chain.addHandler(std::make_shared<PrimaryParser>(*this));
+    // Primary expressions
+    chain.addHandler(std::make_shared<ListParser>(*this));
+    chain.addHandler(std::make_shared<FunctionCallParser>(*this));
+    chain.addHandler(std::make_shared<IdentifierParser>(*this));
+    chain.addHandler(std::make_shared<IfParser>(*this));
+    chain.addHandler(std::make_shared<WhileParser>(*this));
+    chain.addHandler(std::make_shared<LoopControlParser>(*this));
+    chain.addHandler(std::make_shared<ParenthesizedParser>(*this));
+    chain.addHandler(std::make_shared<LiteralFallbackParser>(*this));
     return chain.execute();
 }
 

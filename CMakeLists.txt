@@ -15,7 +15,6 @@ include_directories(src/include)
 
 add_subdirectory(src ${CMAKE_BINARY_DIR}/src)
 
-
 option(BUILD_TESTS "Build the tests" ON)
 if(BUILD_TESTS)
     add_subdirectory(tests ${CMAKE_BINARY_DIR}/tests)
