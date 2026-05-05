@@ -9,9 +9,8 @@
 
 #include <any>
 #include <iostream>
-#include <unordered_map>
-#include <functional>
 #include <memory>
+#include <vector>
 
 
 namespace DemoLang {
@@ -127,10 +126,12 @@ public:
 
 
 /**
- * @brief Get built-in functions map.
- * @return Map of built-in function names to their implementations.
+ * @brief Call a built-in function.
+ * @param name The name of the built-in function.
+ * @param args The arguments to pass to the function.
+ * @return The result of the function call.
 **/
-std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> getBuiltins();
+std::shared_ptr<BaseType> getBuiltin(const std::string& name, const std::vector<std::shared_ptr<BaseType>>& args);
 
 } // namespace ValueTypes
 

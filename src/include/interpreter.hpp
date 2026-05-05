@@ -55,7 +55,6 @@ class Interpreter : public Singleton<Interpreter>, public ASTVisitor {
 private:
     Environment env = Environment();
     std::shared_ptr<BaseType> result;
-    std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> builtins;
 
 public:
     Interpreter();
@@ -70,11 +69,9 @@ public:
     void visit(ErrorNode& node) override;
     void visit(FunctionCallNode& node) override;
     void visit(FunctionDefNode& node) override;
-    void visit(LambdaNode& node) override;
     void visit(IfNode& node) override;
     void visit(WhileNode& node) override;
-    void visit(BreakNode& node) override;
-    void visit(ContinueNode& node) override;
+    void visit(LoopControlNode& node) override;
     void visit(StatementSequenceNode& node) override;
     void visit(ListNode& node) override;
     void visit(IndexNode& node) override;

@@ -112,11 +112,11 @@ std::shared_ptr<ASTNode> ParserSpace::LoopControlParser::handle() {
 
     if (parser.current().value == "##") {
         parser.advance(); // Consume '##'
-        return std::make_shared<BreakNode>();
+        return std::make_shared<LoopControlNode>(LoopControlType::Break);
     }
     if (parser.current().value == "#") {
         parser.advance(); // Consume '#'
-        return std::make_shared<ContinueNode>();
+        return std::make_shared<LoopControlNode>(LoopControlType::Continue);
     }
 
     return nextHandler->handle();

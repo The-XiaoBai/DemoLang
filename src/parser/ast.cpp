@@ -138,24 +138,8 @@ ASTNode* FunctionDefNode::getBody() const {
     return body.get();
 }
 
-LambdaNode::LambdaNode(std::vector<std::string> parameters,
-                       std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody)
-    : params(std::move(parameters)), paramDefaults(std::move(defaults)), body(std::move(functionBody)) {}
-
-void LambdaNode::accept(ASTVisitor& visitor) {
-    visitor.visit(*this);
-}
-
-const std::vector<std::string>& LambdaNode::getParams() const {
-    return params;
-}
-
-const std::vector<std::shared_ptr<ASTNode>>& LambdaNode::getParamDefaults() const {
-    return paramDefaults;
-}
-
-ASTNode* LambdaNode::getBody() const {
-    return body.get();
+bool FunctionDefNode::isAnonymous() const {
+    return name.empty();
 }
 
 IfNode::IfNode(std::vector<std::shared_ptr<ASTNode>> conds,
@@ -194,16 +178,18 @@ ASTNode* WhileNode::getBody() const {
     return body.get();
 }
 
-BreakNode::BreakNode() {}
+LoopControlNode::LoopControlNode(LoopControlType t) : type(t) {}
 
-void BreakNode::accept(ASTVisitor& visitor) {
+void LoopControlNode::accept(ASTVisitor& visitor) {
     visitor.visit(*this);
 }
 
-ContinueNode::ContinueNode() {}
+bool LoopControlNode::isBreak() const {
+    return type == LoopControlType::Break;
+}
 
-void ContinueNode::accept(ASTVisitor& visitor) {
-    visitor.visit(*this);
+bool LoopControlNode::isContinue() const {
+    return type == LoopControlType::Continue;
 }
 
 StatementSequenceNode::StatementSequenceNode(std::vector<std::shared_ptr<ASTNode>> stmts)

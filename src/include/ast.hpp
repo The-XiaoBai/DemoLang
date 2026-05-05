@@ -33,11 +33,9 @@ public:
     virtual void visit(class ErrorNode& node) = 0;
     virtual void visit(class FunctionCallNode& node) = 0;
     virtual void visit(class FunctionDefNode& node) = 0;
-    virtual void visit(class LambdaNode& node) = 0;
     virtual void visit(class IfNode& node) = 0;
     virtual void visit(class WhileNode& node) = 0;
-    virtual void visit(class BreakNode& node) = 0;
-    virtual void visit(class ContinueNode& node) = 0;
+    virtual void visit(class LoopControlNode& node) = 0;
     virtual void visit(class StatementSequenceNode& node) = 0;
     virtual void visit(class ListNode& node) = 0;
     virtual void visit(class IndexNode& node) = 0;
@@ -176,11 +174,11 @@ public:
 };
 
 /**
- * @brief Node representing function definitions.
+ * @brief Node representing function definitions (including lambdas).
 **/
 class FunctionDefNode : public ASTNode {
 private:
-    std::string name;
+    std::string name;  // empty = anonymous lambda
     std::vector<std::string> params;
     std::vector<std::shared_ptr<ASTNode>> paramDefaults;
     std::shared_ptr<ASTNode> body;
@@ -193,24 +191,7 @@ public:
     const std::vector<std::string>& getParams() const;
     const std::vector<std::shared_ptr<ASTNode>>& getParamDefaults() const;
     ASTNode* getBody() const;
-};
-
-/**
- * @brief Node representing anonymous lambda functions.
-**/
-class LambdaNode : public ASTNode {
-private:
-    std::vector<std::string> params;
-    std::vector<std::shared_ptr<ASTNode>> paramDefaults;
-    std::shared_ptr<ASTNode> body;
-
-public:
-    LambdaNode(std::vector<std::string> parameters, 
-               std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody);
-    void accept(ASTVisitor& visitor) override;
-    const std::vector<std::string>& getParams() const;
-    const std::vector<std::shared_ptr<ASTNode>>& getParamDefaults() const;
-    ASTNode* getBody() const;
+    bool isAnonymous() const;
 };
 
 /**
@@ -250,23 +231,23 @@ public:
 };
 
 /**
- * @brief Node representing break statement.
- * Syntax: ##
+ * @brief Loop control type enum.
 **/
-class BreakNode : public ASTNode {
-public:
-    BreakNode();
-    void accept(ASTVisitor& visitor) override;
-};
+enum class LoopControlType { Break, Continue };
 
 /**
- * @brief Node representing continue statement.
- * Syntax: #
+ * @brief Node representing break/continue statements.
+ * Syntax: ## (break), # (continue)
 **/
-class ContinueNode : public ASTNode {
+class LoopControlNode : public ASTNode {
+private:
+    LoopControlType type;
+    
 public:
-    ContinueNode();
+    explicit LoopControlNode(LoopControlType t);
     void accept(ASTVisitor& visitor) override;
+    bool isBreak() const;
+    bool isContinue() const;
 };
 
 /**

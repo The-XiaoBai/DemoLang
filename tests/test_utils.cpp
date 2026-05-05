@@ -60,28 +60,29 @@ public:
 };
 
 
-class TestFactory : public TestCase {
+class TestRegistry : public TestCase {
 public:
     void run() override {
-        class TestProduct {
+        class TestRegistryClass : public Singleton<TestRegistryClass> {
+        private:
+            std::unordered_map<int, std::function<int(int, int)>> funcs;
+            TestRegistryClass() = default;
+            friend class Singleton<TestRegistryClass>;
         public:
-            int value;
-            TestProduct(int v) : value(v) {}
+            void registerFunc(int key, std::function<int(int, int)> func) {
+                funcs[key] = std::move(func);
+            }
+            int execute(int key, int a, int b) {
+                return funcs[key](a, b);
+            }
         };
-        
-        Factory<int, TestProduct> factory;
-        
-        factory.registerCreator(5, []() { return std::make_unique<TestProduct>(10); });
-        factory.registerCreator(10, []() { return std::make_unique<TestProduct>(20); });
-        
-        auto product1 = factory.create(5);
-        auto product2 = factory.create(10);
-        
-        assert(product1);
-        assert(product2);
-        assert(product1->value == 10);
-        assert(product2->value == 20);
-        assert(product1 != product2);
+
+        auto& reg = TestRegistryClass::instance();
+        reg.registerFunc(0, [](int a, int b) { return a + b; });
+        reg.registerFunc(1, [](int a, int b) { return a - b; });
+
+        assert(reg.execute(0, 5, 3) == 8);
+        assert(reg.execute(1, 5, 3) == 2);
     }
 };
 
@@ -124,7 +125,7 @@ int main() {
     TestRunner runner;
     runner.addTest("Utils: Chain of Responsibility", std::make_shared<TestChain>());
     runner.addTest("Utils: Singleton", std::make_shared<TestSingleton>());
-    runner.addTest("Utils: Factory", std::make_shared<TestFactory>());
+    runner.addTest("Utils: Registry", std::make_shared<TestRegistry>());
     runner.addTest("Utils: Flyweight Factory", std::make_shared<TestFlyweightFactory>());
     runner.runAll();
 

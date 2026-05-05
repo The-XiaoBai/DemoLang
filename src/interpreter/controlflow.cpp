@@ -57,12 +57,8 @@ void InterpreterSpace::Interpreter::visit(WhileNode& node) {
     }
 }
 
-void InterpreterSpace::Interpreter::visit(BreakNode& node) {
-    result = std::make_shared<Exception>("__break__");
-}
-
-void InterpreterSpace::Interpreter::visit(ContinueNode& node) {
-    result = std::make_shared<Exception>("__continue__");
+void InterpreterSpace::Interpreter::visit(LoopControlNode& node) {
+    result = std::make_shared<Exception>(node.isBreak() ? "__break__" : "__continue__");
 }
 
 void InterpreterSpace::Interpreter::visit(StatementSequenceNode& node) {

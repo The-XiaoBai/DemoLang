@@ -52,7 +52,7 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
     // Check for empty-parameter lambda: (){body}
     if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
         auto body = parseLambda(parser);
-        return std::make_shared<LambdaNode>(std::vector<std::string>{}, std::vector<std::shared_ptr<ASTNode>>{}, body);
+        return std::make_shared<FunctionDefNode>("", std::vector<std::string>{}, std::vector<std::shared_ptr<ASTNode>>{}, body);
     }
 
     // Check for lambda: (params){body}
@@ -92,7 +92,7 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
         }
 
         auto body = parseLambda(parser);
-        return std::make_shared<LambdaNode>(params, paramDefaults, body);
+        return std::make_shared<FunctionDefNode>("", params, paramDefaults, body);
     }
 
     // Check for end of input
@@ -108,8 +108,8 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
     parser.advance(); // Consume ')'
 
     // Check for lambda call: (lambda)(args)
-    if (dynamic_cast<LambdaNode*>(expr.get())) {
-        if (parser.current().type == TokenType::OPERATOR && parser.current().value == "(") {
+    if (auto* funcDef = dynamic_cast<FunctionDefNode*>(expr.get())) {
+        if (funcDef->isAnonymous() && parser.current().type == TokenType::OPERATOR && parser.current().value == "(") {
             parser.advance(); // Consume '('
 
             std::vector<std::shared_ptr<ASTNode>> args;

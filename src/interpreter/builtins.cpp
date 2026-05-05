@@ -1,9 +1,10 @@
 /**
  * @file src/interpreter/builtins.cpp
- * @brief Built=in types and functions implementation.
+ * @brief Built-in types and functions implementation.
 **/
 
 #include "builtins.hpp"
+#include "utils.hpp"
 #include <iostream>
 #include <string>
 
@@ -123,32 +124,44 @@ std::string List::toString() const {
     return res;
 }
 
-std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> getBuiltins() {
-    std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> builtins;
-    builtins["print"] = [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
-        for (size_t i = 0; i < args.size(); ++i) {
-            std::cout << args[i]->toString();
-            if (i < args.size() - 1) std::cout << " ";
-        }
-        std::cout << std::endl;
-        return std::make_shared<String>("");
-    };
-    builtins["exit"] = [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
-        int code = 0;
-        if (!args.empty()) {
-            if (auto integer = dynamic_cast<Integer*>(args[0].get())) {
-                code = static_cast<int>(std::any_cast<long long>(integer->getValue()));
+// Builtin registry type alias using Registry template
+using BuiltinRegistry = Utils::Registry<
+    std::string,
+    std::shared_ptr<BaseType>,
+    const std::vector<std::shared_ptr<BaseType>>&
+>;
+
+std::shared_ptr<BaseType> getBuiltin(const std::string& name, const std::vector<std::shared_ptr<BaseType>>& args) {
+    auto& reg = BuiltinRegistry::instance();
+    if (!reg.isRegistered("print")) {
+        reg.registerFunc("print", [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
+            for (size_t i = 0; i < args.size(); ++i) {
+                std::cout << args[i]->toString();
+                if (i < args.size() - 1) std::cout << " ";
             }
-        }
-        exit(code);
-        return std::make_shared<String>("");
-    };
-    builtins["query"] = [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
-        std::string input;
-        std::getline(std::cin, input);
-        return std::make_shared<String>(input);
-    };
-    return builtins;
+            std::cout << std::endl;
+            return std::make_shared<String>("");
+        });
+        reg.registerFunc("exit", [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
+            int code = 0;
+            if (!args.empty()) {
+                if (auto integer = dynamic_cast<Integer*>(args[0].get())) {
+                    code = static_cast<int>(std::any_cast<long long>(integer->getValue()));
+                }
+            }
+            exit(code);
+            return std::make_shared<String>("");
+        });
+        reg.registerFunc("query", [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
+            std::string input;
+            std::getline(std::cin, input);
+            return std::make_shared<String>(input);
+        });
+    }
+    if (reg.isRegistered(name)) {
+        return reg.execute(name, args);
+    }
+    return std::make_shared<Exception>("Unknown builtin: " + name);
 }
 
 } // namespace ValueTypes
