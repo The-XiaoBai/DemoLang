@@ -12,16 +12,18 @@
 #include "ast.hpp"
 #include <memory>
 #include <vector>
-
-using namespace DemoLang;
-using namespace DemoLang::Utils;
-using namespace DemoLang::Tokens;
-using namespace DemoLang::AST;
+#include <tuple>
+#include <utility>
 
 
 namespace DemoLang {
 
 namespace ParserSpace {
+
+using namespace DemoLang::Utils;
+using namespace DemoLang::Tokens;
+using namespace DemoLang::AST;
+
 
 /**
  * @brief Parser class for converting tokens to AST.
@@ -32,6 +34,7 @@ class Parser : public Singleton<Parser> {
 private:
     std::vector<Token> tokens;
     size_t current_pos;
+    Utils::Chain<ASTNode> exprChain;
 
 public:
     Parser();
@@ -44,6 +47,20 @@ public:
     std::shared_ptr<ASTNode> parse(const std::vector<Token> &tokens);
     std::shared_ptr<ASTNode> parseExpression();
     std::shared_ptr<ASTNode> parseExpressionInternal();
+
+    /**
+     * @brief Parse a parameter with optional default value.
+     * @return (paramName, defaultValue, errorNode) - errorNode is non-null on error.
+    **/
+    std::tuple<std::string, std::shared_ptr<ASTNode>, std::shared_ptr<ASTNode>>
+    parseOneParam();
+
+    /**
+     * @brief Parse a function call argument.
+     * @return (argNode, errorNode) - errorNode is non-null on error.
+    **/
+    std::pair<std::shared_ptr<ASTNode>, std::shared_ptr<ASTNode>>
+    parseOneArg();
 };
 
 

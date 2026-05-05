@@ -5,6 +5,9 @@
 
 #include "interpreter.hpp"
 
+using namespace DemoLang::ValueTypes;
+
+
 namespace DemoLang {
 
 static bool isTruthy(const std::shared_ptr<BaseType>& val) {

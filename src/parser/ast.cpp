@@ -93,10 +93,10 @@ const std::string& ErrorNode::getMessage() const {
 }
 
 FunctionCallNode::FunctionCallNode(const std::string& funcName, std::vector<std::shared_ptr<ASTNode>> arguments)
-    : name(funcName), lambdaNode(nullptr), args(std::move(arguments)) {}
+    : name(funcName), calleeNode(nullptr), args(std::move(arguments)) {}
 
-FunctionCallNode::FunctionCallNode(std::shared_ptr<ASTNode> lambda, std::vector<std::shared_ptr<ASTNode>> arguments)
-    : name(""), lambdaNode(std::move(lambda)), args(std::move(arguments)) {}
+FunctionCallNode::FunctionCallNode(std::shared_ptr<ASTNode> callee, std::vector<std::shared_ptr<ASTNode>> arguments)
+    : name(""), calleeNode(std::move(callee)), args(std::move(arguments)) {}
 
 void FunctionCallNode::accept(ASTVisitor& visitor) {
     visitor.visit(*this);
@@ -106,8 +106,8 @@ const std::string& FunctionCallNode::getName() const {
     return name;
 }
 
-std::shared_ptr<ASTNode> FunctionCallNode::getLambdaNode() const {
-    return lambdaNode;
+std::shared_ptr<ASTNode> FunctionCallNode::getCalleeNode() const {
+    return calleeNode;
 }
 
 const std::vector<std::shared_ptr<ASTNode>>& FunctionCallNode::getArgs() const {

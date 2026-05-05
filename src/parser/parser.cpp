@@ -7,12 +7,33 @@
 #include "parser.hpp"
 #include "utils.hpp"
 
+using namespace DemoLang;
+using namespace DemoLang::Utils;
+using namespace DemoLang::Tokens;
+using namespace DemoLang::AST;
+
 
 namespace DemoLang {
 
 namespace ParserSpace {
 
-Parser::Parser() : current_pos(0) {}
+Parser::Parser() : current_pos(0) {
+    exprChain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"="}));
+    exprChain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"&", "|"}));
+    exprChain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"==", "!="}));
+    exprChain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"<", "<=", ">", ">="}));
+    exprChain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"+", "-"}));
+    exprChain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"*", "/"}));
+    exprChain.addHandler(std::make_shared<UnaryParser>(*this, std::vector<std::string>{"!", "-"}));
+    exprChain.addHandler(std::make_shared<ListParser>(*this));
+    exprChain.addHandler(std::make_shared<FunctionCallParser>(*this));
+    exprChain.addHandler(std::make_shared<IdentifierParser>(*this));
+    exprChain.addHandler(std::make_shared<IfParser>(*this));
+    exprChain.addHandler(std::make_shared<WhileParser>(*this));
+    exprChain.addHandler(std::make_shared<LoopControlParser>(*this));
+    exprChain.addHandler(std::make_shared<ParenthesizedParser>(*this));
+    exprChain.addHandler(std::make_shared<LiteralFallbackParser>(*this));
+}
 
 BaseParser::BaseParser(Parser& parser) : parser(parser) {}
 
@@ -86,31 +107,43 @@ std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpression() {
 }
 
 std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpressionInternal() {
-    Utils::Chain<ASTNode> chain;
-    // Assignment operators (lowest precedence)
-    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"="}));
-    // Logical operators
-    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"&", "|"}));
-    // Equality operators
-    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"==", "!="}));
-    // Relational operators
-    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"<", "<=", ">", ">="}));
-    // Additive operators
-    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"+", "-"}));
-    // Multiplicative operators
-    chain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"*", "/"}));
-    // Unary operators (highest precedence)
-    chain.addHandler(std::make_shared<UnaryParser>(*this, std::vector<std::string>{"!", "-"}));
-    // Primary expressions
-    chain.addHandler(std::make_shared<ListParser>(*this));
-    chain.addHandler(std::make_shared<FunctionCallParser>(*this));
-    chain.addHandler(std::make_shared<IdentifierParser>(*this));
-    chain.addHandler(std::make_shared<IfParser>(*this));
-    chain.addHandler(std::make_shared<WhileParser>(*this));
-    chain.addHandler(std::make_shared<LoopControlParser>(*this));
-    chain.addHandler(std::make_shared<ParenthesizedParser>(*this));
-    chain.addHandler(std::make_shared<LiteralFallbackParser>(*this));
-    return chain.execute();
+    return exprChain.execute();
+}
+
+std::tuple<std::string, std::shared_ptr<ASTNode>, std::shared_ptr<ASTNode>>
+ParserSpace::Parser::parseOneParam() {
+    if (current().type != TokenType::IDENTIFIER)
+        return {"", nullptr, std::make_shared<ErrorNode>("Expected parameter name")};
+    std::string paramName = current().value;
+    advance();
+    std::shared_ptr<ASTNode> defaultValue = nullptr;
+    if (current().type == TokenType::OPERATOR && current().value == "=") {
+        advance();
+        defaultValue = parseExpressionInternal();
+    }
+    return {paramName, defaultValue, nullptr};
+}
+
+std::pair<std::shared_ptr<ASTNode>, std::shared_ptr<ASTNode>>
+ParserSpace::Parser::parseOneArg() {
+    if (current().type == TokenType::IDENTIFIER) {
+        std::string idName = current().value;
+        advance();
+        if (current().type == TokenType::OPERATOR && current().value == "[") {
+            advance();
+            auto indexExpr = parseExpression();
+            if (current().type != TokenType::OPERATOR || current().value != "]")
+                return {nullptr, std::make_shared<ErrorNode>("Expected ']' in index access")};
+            advance();
+            return {std::make_shared<IndexNode>(std::make_shared<IdNode>(idName), indexExpr), nullptr};
+        }
+        if (current().type == TokenType::OPERATOR && current().value == "=") {
+            advance();
+            return {parseExpression(), nullptr};
+        }
+        return {std::make_shared<IdNode>(idName), nullptr};
+    }
+    return {parseExpression(), nullptr};
 }
 
 } // namespace DemoLang

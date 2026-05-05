@@ -13,15 +13,15 @@
 #include <unordered_map>
 #include <functional>
 
-using namespace DemoLang;
-using namespace DemoLang::Utils;
-using namespace DemoLang::AST;
-using namespace DemoLang::ValueTypes;
-
 
 namespace DemoLang {
 
 namespace InterpreterSpace {
+
+using namespace DemoLang::ValueTypes;
+using namespace DemoLang::AST;
+using Utils::Singleton;
+
 
 /**
  * @brief Environment to store variables in the context of execution

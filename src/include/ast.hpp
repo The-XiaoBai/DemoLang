@@ -161,15 +161,15 @@ public:
 class FunctionCallNode : public ASTNode {
 private:
     std::string name;
-    std::shared_ptr<ASTNode> lambdaNode;
+    std::shared_ptr<ASTNode> calleeNode;
     std::vector<std::shared_ptr<ASTNode>> args;
 
 public:
     FunctionCallNode(const std::string& funcName, std::vector<std::shared_ptr<ASTNode>> arguments);
-    FunctionCallNode(std::shared_ptr<ASTNode> lambda, std::vector<std::shared_ptr<ASTNode>> arguments);
+    FunctionCallNode(std::shared_ptr<ASTNode> callee, std::vector<std::shared_ptr<ASTNode>> arguments);
     void accept(ASTVisitor& visitor) override;
     const std::string& getName() const;
-    std::shared_ptr<ASTNode> getLambdaNode() const;
+    std::shared_ptr<ASTNode> getCalleeNode() const;
     const std::vector<std::shared_ptr<ASTNode>>& getArgs() const;
 };
 

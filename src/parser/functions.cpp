@@ -6,6 +6,10 @@
 #include "parser.hpp"
 #include "utils.hpp"
 
+using namespace DemoLang::AST;
+using namespace DemoLang::Tokens;
+
+
 namespace DemoLang {
 
 ParserSpace::FunctionCallParser::FunctionCallParser(Parser& p) : BaseParser(p) {}
@@ -47,54 +51,18 @@ std::shared_ptr<ASTNode> ParserSpace::FunctionCallParser::handle() {
     }
 
     // Parse first argument
-    if (parser.current().type == TokenType::IDENTIFIER) {
-        std::string paramName = parser.current().value;
-        parser.advance();
-        // Check for index access: identifier[index]
-        if (parser.current().type == TokenType::OPERATOR && parser.current().value == "[") {
-            parser.advance(); // Consume '['
-            auto indexExpr = parser.parseExpression();
-            if (parser.current().type != TokenType::OPERATOR || parser.current().value != "]")
-                return std::make_shared<ErrorNode>("Expected ']' in index access");
-            parser.advance();
-            auto idNode = std::make_shared<IdNode>(paramName);
-            args.push_back(std::make_shared<IndexNode>(idNode, indexExpr));
-        } else if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
-            parser.advance(); // Consume '='
-            args.push_back(parser.parseExpression());
-        } else {
-            args.push_back(std::make_shared<IdNode>(paramName));
-        }
-    } else {
-        args.push_back(parser.parseExpression());
-    }
+    auto [firstArg, firstErr] = parser.parseOneArg();
+    if (firstErr) return firstErr;
+    args.push_back(firstArg);
 
     // Parse remaining arguments
     while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
         parser.advance(); // Consume ','
-        if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
+        if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")")
             return std::make_shared<ErrorNode>("Unexpected ',' before ')'");
-        }
-        if (parser.current().type == TokenType::IDENTIFIER) {
-            std::string paramName = parser.current().value;
-            parser.advance();
-            if (parser.current().type == TokenType::OPERATOR && parser.current().value == "[") {
-                parser.advance(); // Consume '['
-                auto indexExpr = parser.parseExpression();
-                if (parser.current().type != TokenType::OPERATOR || parser.current().value != "]")
-                    return std::make_shared<ErrorNode>("Expected ']' in index access");
-                parser.advance();
-                auto idNode = std::make_shared<IdNode>(paramName);
-                args.push_back(std::make_shared<IndexNode>(idNode, indexExpr));
-            } else if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
-                parser.advance(); // Consume '='
-                args.push_back(parser.parseExpression());
-            } else {
-                args.push_back(std::make_shared<IdNode>(paramName));
-            }
-        } else {
-            args.push_back(parser.parseExpression());
-        }
+        auto [arg, err] = parser.parseOneArg();
+        if (err) return err;
+        args.push_back(arg);
     }
 
     // Expect closing ')'

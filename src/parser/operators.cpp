@@ -6,6 +6,9 @@
 #include "parser.hpp"
 #include "utils.hpp"
 
+using namespace DemoLang::AST;
+using namespace DemoLang::Tokens;
+
 
 namespace DemoLang {
 
@@ -52,42 +55,19 @@ std::shared_ptr<ASTNode> ParserSpace::BinaryParser::handle() {
                 if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
                     parser.advance(); // Consume ')'
                 } else {
-                    // Parse first parameter (support default value: a=1)
-                    if (parser.current().type == TokenType::IDENTIFIER) {
-                        std::string paramName = parser.current().value;
-                        parser.advance(); // Consume parameter name
-                        // Check for default value
-                        std::shared_ptr<ASTNode> defaultValue = nullptr;
-                        if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
-                            parser.advance(); // Consume '='
-                            defaultValue = parser.parseExpressionInternal();
-                        }
-                        params.push_back(paramName);
-                        paramDefaults.push_back(defaultValue);
-                    } else {
-                        return std::make_shared<ErrorNode>("Expected parameter name");
-                    }
+                    auto [pName, pDef, err] = parser.parseOneParam();
+                    if (err) return err;
+                    params.push_back(pName);
+                    paramDefaults.push_back(pDef);
 
-                    // Parse remaining parameters
                     while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
                         parser.advance(); // Consume ','
-                        if (parser.current().type == TokenType::IDENTIFIER) {
-                            std::string paramName = parser.current().value;
-                            parser.advance(); // Consume parameter name
-                            // Check for default value
-                            std::shared_ptr<ASTNode> defaultValue = nullptr;
-                            if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
-                                parser.advance(); // Consume '='
-                                defaultValue = parser.parseExpressionInternal();
-                            }
-                            params.push_back(paramName);
-                            paramDefaults.push_back(defaultValue);
-                        } else {
-                            return std::make_shared<ErrorNode>("Expected parameter name after ','");
-                        }
+                        auto [rpName, rpDef, rerr] = parser.parseOneParam();
+                        if (rerr) return std::make_shared<ErrorNode>("Expected parameter name after ','");
+                        params.push_back(rpName);
+                        paramDefaults.push_back(rpDef);
                     }
 
-                    // Expect closing ')'
                     if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
                         parser.advance(); // Consume ')'
                     } else {

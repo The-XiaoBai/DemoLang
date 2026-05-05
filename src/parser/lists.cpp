@@ -6,6 +6,10 @@
 #include "parser.hpp"
 #include "utils.hpp"
 
+using namespace DemoLang::AST;
+using namespace DemoLang::Tokens;
+
+
 namespace DemoLang {
 
 ParserSpace::ListParser::ListParser(Parser& p) : BaseParser(p) {}

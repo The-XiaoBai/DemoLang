@@ -6,6 +6,8 @@
 #include "lexer.hpp"
 #include <cctype>
 
+using namespace DemoLang::Tokens;
+
 
 namespace DemoLang {
 

@@ -6,6 +6,10 @@
 #include "parser.hpp"
 #include "utils.hpp"
 
+using namespace DemoLang::AST;
+using namespace DemoLang::Tokens;
+
+
 namespace DemoLang {
 namespace ParserSpace {
 
@@ -60,35 +64,17 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
         std::vector<std::string> params;
         std::vector<std::shared_ptr<ASTNode>> paramDefaults;
 
-        // Parse first parameter
-        std::string paramName = parser.current().value;
-        parser.advance(); // Consume parameter name
+        auto [pName, pDef, err] = parser.parseOneParam();
+        if (err) return err;
+        params.push_back(pName);
+        paramDefaults.push_back(pDef);
 
-        std::shared_ptr<ASTNode> defaultValue = nullptr;
-        if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
-            parser.advance(); // Consume '='
-            defaultValue = parser.parseExpressionInternal();
-        }
-        params.push_back(paramName);
-        paramDefaults.push_back(defaultValue);
-
-        // Parse remaining parameters
         while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
             parser.advance(); // Consume ','
-            if (parser.current().type == TokenType::IDENTIFIER) {
-                std::string pName = parser.current().value;
-                parser.advance();
-
-                std::shared_ptr<ASTNode> defVal = nullptr;
-                if (parser.current().type == TokenType::OPERATOR && parser.current().value == "=") {
-                    parser.advance();
-                    defVal = parser.parseExpressionInternal();
-                }
-                params.push_back(pName);
-                paramDefaults.push_back(defVal);
-            } else {
-                return std::make_shared<ErrorNode>("Expected parameter name after ','");
-            }
+            auto [rpName, rpDef, rerr] = parser.parseOneParam();
+            if (rerr) return std::make_shared<ErrorNode>("Expected parameter name after ','");
+            params.push_back(rpName);
+            paramDefaults.push_back(rpDef);
         }
 
         auto body = parseLambda(parser);

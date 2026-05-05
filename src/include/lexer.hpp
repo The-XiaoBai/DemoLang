@@ -12,14 +12,14 @@
 #include <vector>
 #include <memory>
 
-using namespace DemoLang;
-using namespace DemoLang::Utils;
-using namespace DemoLang::Tokens;
-
 
 namespace DemoLang {
 
 namespace LexerSpace {
+
+using namespace DemoLang::Utils;
+using namespace DemoLang::Tokens;
+
 
 /**
  * @brief Lexer class for tokenizing input.
@@ -30,6 +30,7 @@ class Lexer : public Singleton<Lexer> {
 private:
     std::string input;
     size_t position;
+    Utils::Chain<Token> handlerChain;
 
 public:
     Lexer();

@@ -5,6 +5,8 @@
 
 #include "lexer.hpp"
 
+using namespace DemoLang::Tokens;
+
 
 namespace DemoLang {
 

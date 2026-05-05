@@ -5,6 +5,9 @@
 
 #include "interpreter.hpp"
 
+using namespace DemoLang::ValueTypes;
+using namespace DemoLang::AST;
+
 
 namespace DemoLang {
 

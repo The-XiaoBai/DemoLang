@@ -131,33 +131,40 @@ using BuiltinRegistry = Utils::Registry<
     const std::vector<std::shared_ptr<BaseType>>&
 >;
 
-std::shared_ptr<BaseType> getBuiltin(const std::string& name, const std::vector<std::shared_ptr<BaseType>>& args) {
+static bool builtinsInitialized = false;
+
+static void initBuiltins() {
+    if (builtinsInitialized) return;
+    builtinsInitialized = true;
     auto& reg = BuiltinRegistry::instance();
-    if (!reg.isRegistered("print")) {
-        reg.registerFunc("print", [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
-            for (size_t i = 0; i < args.size(); ++i) {
-                std::cout << args[i]->toString();
-                if (i < args.size() - 1) std::cout << " ";
+    reg.registerFunc("print", [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
+        for (size_t i = 0; i < args.size(); ++i) {
+            std::cout << args[i]->toString();
+            if (i < args.size() - 1) std::cout << " ";
+        }
+        std::cout << std::endl;
+        return std::make_shared<String>("");
+    });
+    reg.registerFunc("exit", [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
+        int code = 0;
+        if (!args.empty()) {
+            if (auto integer = dynamic_cast<Integer*>(args[0].get())) {
+                code = static_cast<int>(std::any_cast<long long>(integer->getValue()));
             }
-            std::cout << std::endl;
-            return std::make_shared<String>("");
-        });
-        reg.registerFunc("exit", [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
-            int code = 0;
-            if (!args.empty()) {
-                if (auto integer = dynamic_cast<Integer*>(args[0].get())) {
-                    code = static_cast<int>(std::any_cast<long long>(integer->getValue()));
-                }
-            }
-            exit(code);
-            return std::make_shared<String>("");
-        });
-        reg.registerFunc("query", [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
-            std::string input;
-            std::getline(std::cin, input);
-            return std::make_shared<String>(input);
-        });
-    }
+        }
+        exit(code);
+        return std::make_shared<String>("");
+    });
+    reg.registerFunc("query", [](const std::vector<std::shared_ptr<BaseType>>& args) -> std::shared_ptr<BaseType> {
+        std::string input;
+        std::getline(std::cin, input);
+        return std::make_shared<String>(input);
+    });
+}
+
+std::shared_ptr<BaseType> getBuiltin(const std::string& name, const std::vector<std::shared_ptr<BaseType>>& args) {
+    initBuiltins();
+    auto& reg = BuiltinRegistry::instance();
     if (reg.isRegistered(name)) {
         return reg.execute(name, args);
     }

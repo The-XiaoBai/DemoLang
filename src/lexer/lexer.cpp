@@ -5,6 +5,10 @@
 
 #include "lexer.hpp"
 
+using namespace DemoLang;
+using namespace DemoLang::Utils;
+using namespace DemoLang::Tokens;
+
 
 namespace DemoLang {
 
@@ -12,7 +16,15 @@ namespace LexerSpace {
 
 BaseHandler::BaseHandler(Lexer& lexer) : lexer(lexer) {}
 
-Lexer::Lexer() : position(0) {}
+Lexer::Lexer() : position(0) {
+    handlerChain.addHandler(std::make_shared<EOFHandler>(*this));
+    handlerChain.addHandler(std::make_shared<WhitespaceHandler>(*this));
+    handlerChain.addHandler(std::make_shared<StringHandler>(*this));
+    handlerChain.addHandler(std::make_shared<NumberHandler>(*this));
+    handlerChain.addHandler(std::make_shared<OperatorHandler>(*this));
+    handlerChain.addHandler(std::make_shared<IdentifierHandler>(*this));
+    handlerChain.addHandler(std::make_shared<UnknownHandler>(*this));
+}
 
 std::string Lexer::getInput() const { return input; }
 size_t Lexer::pos() const { return position; }
@@ -26,18 +38,7 @@ std::shared_ptr<Token> Lexer::getToken(TokenType type, const std::string& value)
 }
 
 Token Lexer::nextToken() {
-    // Create a chain of responsibility pattern for token recognition
-    Chain<Token> chain;
-    // Add handlers in order of priority
-    chain.addHandler(std::make_shared<EOFHandler>(*this));
-    chain.addHandler(std::make_shared<WhitespaceHandler>(*this));
-    chain.addHandler(std::make_shared<StringHandler>(*this));
-    chain.addHandler(std::make_shared<NumberHandler>(*this));
-    chain.addHandler(std::make_shared<OperatorHandler>(*this));
-    chain.addHandler(std::make_shared<IdentifierHandler>(*this));
-    chain.addHandler(std::make_shared<UnknownHandler>(*this));
-
-    auto result = chain.execute();
+    auto result = handlerChain.execute();
     return *result;
 }
 

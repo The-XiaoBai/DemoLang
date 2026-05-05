@@ -5,6 +5,12 @@
 
 #include "interpreter.hpp"
 
+using namespace DemoLang;
+using namespace DemoLang::Utils;
+using namespace DemoLang::AST;
+using namespace DemoLang::ValueTypes;
+
+
 namespace DemoLang {
 
 void InterpreterSpace::Interpreter::visit(IdNode& node) {
@@ -50,8 +56,8 @@ static void bindParamsImpl(InterpreterSpace::Environment& env,
 
 void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
     // Lambda immediate execution: (params){body}(args)
-    if (node.getLambdaNode()) {
-        auto funcDef = dynamic_cast<FunctionDefNode*>(node.getLambdaNode().get());
+    if (node.getCalleeNode()) {
+        auto funcDef = dynamic_cast<FunctionDefNode*>(node.getCalleeNode().get());
         if (funcDef) {
             std::vector<std::shared_ptr<BaseType>> args;
             for (const auto& arg : node.getArgs()) {
