@@ -81,10 +81,10 @@ std::shared_ptr<ASTNode> ParserSpace::IfParser::handle() {
 ParserSpace::WhileParser::WhileParser(Parser& p) : BaseParser(p) {}
 
 std::shared_ptr<ASTNode> ParserSpace::WhileParser::handle() {
-    if (parser.current().type != TokenType::OPERATOR || parser.current().value != "$") {
+    if (parser.current().type != TokenType::OPERATOR || parser.current().value != "^") {
         return nextHandler->handle();
     }
-    parser.advance(); // Consume '$'
+    parser.advance(); // Consume '^'
 
     // Parse condition
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != "(")
