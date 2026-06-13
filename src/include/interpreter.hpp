@@ -24,7 +24,7 @@ using Utils::Singleton;
 
 
 /**
- * @brief Environment to store variables in the context of execution
+ * @brief Environment to store variables in the current execution context
 **/
 class Environment {
 private:

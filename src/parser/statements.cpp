@@ -88,7 +88,7 @@ std::shared_ptr<ASTNode> ParserSpace::WhileParser::handle() {
 
     // Parse condition
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != "(")
-        return std::make_shared<ErrorNode>("Expected '(' after '$'");
+        return std::make_shared<ErrorNode>("Expected '(' after '^'");
     parser.advance(); // Consume '('
     auto condition = parser.parseExpression();
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")

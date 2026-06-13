@@ -1,0 +1,11 @@
+# Auto-detect text files, normalize to LF
+* text=auto
+
+# Mark as binary
+*.png binary
+*.jpg binary
+
+# Linguist overrides
+*.hpp linguist-language=C++
+*.cpp linguist-language=C++
+*.h linguist-language=C

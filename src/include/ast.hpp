@@ -216,7 +216,7 @@ public:
 
 /**
  * @brief Node representing while loop statements.
- * Syntax: $(condition){body}
+ * Syntax: ^(condition){body}
 **/
 class WhileNode : public ASTNode {
 private:

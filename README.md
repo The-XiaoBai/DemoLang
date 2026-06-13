@@ -1,23 +1,8 @@
 # DemoLang
 
-> A simple interpreted programming language implemented in C++.
+> A C++ based scripting language for demonstration purposes, using the MIT license.
 
-> This project is mainly used to demonstrate the basic principles and implementation methods of programming language interpreters.
-
-## Features
-
-- **REPL Interface**: Interactive command-line environment with immediate feedback
-- **Complete Pipeline**: Lexer, Parser, and Interpreter with clean separation
-- **Operator Precedence**: Arithmetic, logical, comparison, and return operators with proper precedence
-- **Basic Types**: Integer, Float, String, etc.
-- **Variables**: Assignment and reference system with dynamic typing
-- **Control Flow**: If-else statements and while loops with break/continue support
-- **Lambda Functions**: First-class functions with anonymous lambda support and `@` return operator
-- **Error Handling**: Comprehensive error reporting for all stages
-- **Design Patterns**: Singleton, Chain of Responsibility, Visitor, Factory, Flyweight
-- **Full Test Suite**: Complete test coverage with CTest integration
-- **Memory Safe**: Modern C++ with smart pointers and RAII
-- **Extensible**: Clean architecture for easy language extension
+> This project `DemoLang` is mainly used to demonstrate the basic principles and implementation methods of interpreted programming language.
 
 ## Architecture
 
@@ -25,43 +10,64 @@
 Source → Lexer → Tokens → Parser → AST → Interpreter → Result
 ```
 
-## Project Structure
+## File Structure
 
 ```
 DemoLang/
-├── .gitignore                # Git ignore file
-├── LICENSE                   # License file
-├── README.md                 # Project description
-├── doc.md                    # Complete documentation
-├── CMakeLists.txt            # Project build configuration
-├── src/                      # Source files and headers
-│   ├── CMakeLists.txt        # Source build configuration
-│   ├── main.cpp              # Main entry point
+├── .gitattributes            # Git line-ending & language config
+├── .gitignore                # Git ignore rules
+├── LICENSE                   # MIT License
+├── README.md                 # Project overview
+├── CHANGELOG.md              # Version history
+├── CONTRIBUTING.md           # Contribution guide
+├── CMakeLists.txt            # Top-level build config
+├── doc/                      # Documentation
+│   ├── GettingStarted.md     # Quick start guide
+│   ├── Variables.md          # Variables & functions
+│   ├── DataCalculations.md   # Types & operators
+│   ├── ControlFlows.md       # If / While statements
+│   └── Details.md            # Implementation details
+├── src/                      # Source files
+│   ├── CMakeLists.txt        # Library + executables
+│   ├── main.cpp              # REPL entry point
 │   ├── fileloader.cpp        # File execution entry point
 │   ├── include/              # Header files
 │   │   ├── tokens.hpp        # Token definitions
 │   │   ├── lexer.hpp         # Lexer interface
-│   │   ├── ast.hpp           # Abstract Syntax Tree definitions
+│   │   ├── ast.hpp           # AST node definitions
 │   │   ├── parser.hpp        # Parser interface
-│   │   ├── builtins.hpp      # Built-in functions and types
+│   │   ├── builtins.hpp      # Built-in functions & types
 │   │   ├── interpreter.hpp   # Interpreter interface
-│   │   └── utils.hpp         # Utility functions
+│   │   └── utils.hpp         # Utility helpers
 │   ├── lexer/                # Lexer implementation
-│   │   ├── lexer.cpp         # Lexer implementation
-│   │   └── handlers.cpp      # Token handler implementations
+│   │   ├── lexer.cpp
+│   │   ├── eof.cpp
+│   │   ├── identifier.cpp
+│   │   ├── numbers.cpp
+│   │   ├── operators.cpp
+│   │   ├── string.cpp
+│   │   ├── unknown.cpp
+│   │   └── whitespaces.cpp
 │   ├── parser/               # Parser implementation
-│   │   ├── ast.cpp           # AST node implementations
-│   │   ├── parser.cpp        # Parser implementation
-│   │   ├── operators.cpp     # Operator implementations
-│   │   └── singles.cpp       # Single-expression evaluation
+│   │   ├── ast.cpp
+│   │   ├── parser.cpp
+│   │   ├── operators.cpp
+│   │   ├── literals.cpp
+│   │   ├── lists.cpp
+│   │   ├── parenthesized.cpp
+│   │   ├── functions.cpp
+│   │   ├── identifier.cpp
+│   │   └── statements.cpp
 │   └── interpreter/          # Interpreter implementation
-│       ├── builtins.cpp      # Built-in function implementations
-│       ├── interpreter.cpp   # Interpreter implementation
-│       ├── operators.cpp     # Operator implementations
-│       └── singles.cpp       # Single-expression evaluation
-└── tests/                    # Test files
-    ├── CMakeLists.txt        # Test build configuration
-    ├── test_framework.hpp    # Test framework
+│       ├── builtins.cpp
+│       ├── interpreter.cpp
+│       ├── operators.cpp
+│       ├── literals.cpp
+│       ├── variables.cpp
+│       └── controlflow.cpp
+└── tests/                    # Test suite
+    ├── CMakeLists.txt        # Test build config
+    ├── test_framework.hpp    # Lightweight test framework
     ├── test_lexer.cpp        # Lexer tests
     ├── test_parser.cpp       # Parser tests
     ├── test_interpreter.cpp  # Interpreter tests
@@ -72,7 +78,7 @@ DemoLang/
 
 ### Requirements
 
-- **Compiler**: C++17 compatible (GCC 7+, Clang 5+, MSVC 2017+)
+- **Compiler**: C++20 compatible (GCC 10+, Clang 10+, MSVC 2019+)
 - **Build Tool**: CMake 3.10 or higher
 - **Version Control**: Git
 
@@ -91,7 +97,7 @@ DemoLang/
    cmake --build .
    ```
 
-3. **Run interpreter**:
+3. **Run executables**:
    ```bash
    ./Shell                    # Run REPL at Linux/macOS
    .\Shell.exe                # Run REPL at Windows
@@ -106,7 +112,16 @@ DemoLang/
 
 ## Documentation
 
-> **[Documentation](doc.md)**
+- **[Changelog](CHANGELOG.md)**
+- **[Getting Started](doc/GettingStarted.md)**
+- **[Data Types And Calculations](doc/DataCalculations.md)**
+- **[Variables And Functions](doc/Variables.md)**
+- **[Control Flows](doc/ControlFlows.md)**
+- **[Implementation Details](doc/Details.md)**
+
+## Contributing
+
+First of all, thank you for your interest in contributing to DemoLang! Please read the [contribution guide](CONTRIBUTING.md) for details on how to contribute.
 
 ## License
 
