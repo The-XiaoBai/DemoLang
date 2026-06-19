@@ -17,8 +17,10 @@ static bool isTruthy(const std::shared_ptr<BaseType>& val) {
         return std::any_cast<long double>(flo->getValue()) != 0.0;
     } else if (auto str = dynamic_cast<String*>(val.get())) {
         return !std::any_cast<std::string>(str->getValue()).empty();
+    } else if (auto list = dynamic_cast<List*>(val.get())) {
+        return !std::any_cast<std::vector<std::shared_ptr<BaseType>>>(list->getValue()).empty();
     }
-    return false;
+    return true;
 }
 
 void InterpreterSpace::Interpreter::visit(IfNode& node) {

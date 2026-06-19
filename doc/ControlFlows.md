@@ -20,8 +20,8 @@ DemoLang supports conditional execution with if-else syntax:
 - `??` starts an else-if branch (multiple allowed)
 - `:` introduces the else branch (optional)
 - Conditions are evaluated sequentially; first true condition executes its body
-- Truthy: non-zero integer, non-zero float, non-empty string
-- Falsy: `0`, `0.0`, `""`, List
+- Truthy: non-zero integer, non-zero float, non-empty string, non-empty list, and other non-null types
+- Falsy: `0`, `0.0`, `""`, empty list (`[]`)
 
 ```
 x = 5

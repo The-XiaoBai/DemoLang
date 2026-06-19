@@ -36,7 +36,10 @@ static bool toBool(std::shared_ptr<BaseType> operand) {
     if (operand->getName() == "String") {
         return !std::any_cast<std::string>(operand->getValue()).empty();
     }
-    return false;
+    if (operand->getName() == "List") {
+        return !std::any_cast<std::vector<std::shared_ptr<BaseType>>>(operand->getValue()).empty();
+    }
+    return true;
 }
 
 // Generic arithmetic: + - *
