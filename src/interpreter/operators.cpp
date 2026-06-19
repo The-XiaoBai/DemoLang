@@ -48,7 +48,7 @@ static std::shared_ptr<BaseType> arithmetic(
     std::function<long long(long long, long long)> intOp,
     std::function<long double(long double, long double)> floatOp)
 {
-    if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
+    if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Operand must be numeric");
     if (left->getName() == "Integer" && right->getName() == "Integer") {
         return std::make_shared<Integer>(
             intOp(std::any_cast<long long>(left->getValue()), std::any_cast<long long>(right->getValue())));
@@ -68,7 +68,7 @@ static std::shared_ptr<BaseType> compare(
         return std::make_shared<Integer>(
             strCmp(std::any_cast<std::string>(left->getValue()), std::any_cast<std::string>(right->getValue())) ? 1 : 0);
     }
-    if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Type error");
+    if (!isNumeric(left) || !isNumeric(right)) return std::make_shared<Exception>("Operand must be numeric");
     auto l = toFloat(left), r = toFloat(right);
     return std::make_shared<Integer>(
         cmp(std::any_cast<long double>(l->getValue()), std::any_cast<long double>(r->getValue())) ? 1 : 0);
@@ -93,7 +93,7 @@ static void initOperators() {
         return arithmetic(l, r, [](long long a, long long b) { return a * b; }, [](long double a, long double b) { return a * b; });
     });
     reg.registerFunc("/", [](auto l, auto r) -> std::shared_ptr<BaseType> {
-        if (!isNumeric(l) || !isNumeric(r)) return std::make_shared<Exception>("Type error");
+        if (!isNumeric(l) || !isNumeric(r)) return std::make_shared<Exception>("Operand must be numeric");
         auto rVal = std::any_cast<long double>(toFloat(r)->getValue());
         if (rVal == 0.0) return std::make_shared<Exception>("Division by zero");
         auto lVal = std::any_cast<long double>(toFloat(l)->getValue());
@@ -133,6 +133,11 @@ void InterpreterSpace::Interpreter::visit(UnaryOpNode& node) {
     node.getOperand()->accept(*this);
     std::shared_ptr<BaseType> operand = result;
 
+    // Propagate exception from operand evaluation
+    if (dynamic_cast<Exception*>(operand.get())) {
+        return;
+    }
+
     // Type validation: unary operators only work on numeric types
     if (operand->getName() != "Integer" && operand->getName() != "Float") {
         result = std::make_shared<Exception>("Operand must be numeric");
@@ -161,15 +166,16 @@ void InterpreterSpace::Interpreter::visit(UnaryOpNode& node) {
 
 
 void InterpreterSpace::Interpreter::visit(BinaryOpNode& node) {
-    // Evaluate left operand first
-    node.getLeft()->accept(*this);
-    std::shared_ptr<BaseType> left = result;
-    // Then evaluate right operand
-    node.getRight()->accept(*this);
-    std::shared_ptr<BaseType> right = result;
-    
-    // Handle assignment operator separately (special case with side effects)
+    // Handle assignment operator first — left side resolution is not needed
+    // since the handler uses the AST IdNode directly (variable may not exist yet)
     if (node.getOp() == "=") {
+        // For assignment, right side must still be evaluated
+        node.getRight()->accept(*this);
+        std::shared_ptr<BaseType> right = result;
+        if (dynamic_cast<Exception*>(right.get())) {
+            return;
+        }
+        
         if (auto* identifier = dynamic_cast<IdNode*>(node.getLeft())) {
             std::string name = identifier->getName();
             // Check if right side is an anonymous function (lambda)
@@ -187,6 +193,21 @@ void InterpreterSpace::Interpreter::visit(BinaryOpNode& node) {
         } else {
             result = std::make_shared<Exception>("Left side of assignment must be an identifier");
         }
+        return;
+    }
+    
+    // Evaluate left operand first
+    node.getLeft()->accept(*this);
+    std::shared_ptr<BaseType> left = result;
+    // Propagate exception from left operand evaluation
+    if (dynamic_cast<Exception*>(left.get())) {
+        return;
+    }
+    // Then evaluate right operand
+    node.getRight()->accept(*this);
+    std::shared_ptr<BaseType> right = result;
+    // Propagate exception from right operand evaluation
+    if (dynamic_cast<Exception*>(right.get())) {
         return;
     }
     

@@ -63,6 +63,13 @@ public:
     parseOneArg();
 };
 
+/**
+ * @brief Parse the body content of a function/lambda (between { and }).
+ *        Does NOT consume the opening '{' or closing '}'.
+ * @return (bodyNode, hasReturn)
+**/
+std::pair<std::shared_ptr<ASTNode>, bool> parseFunctionBody(Parser& parser);
+
 
 /**
  * @brief Base parser for AST node generation.

@@ -32,6 +32,9 @@ void InterpreterSpace::Interpreter::visit(ListNode& node) {
     std::vector<std::shared_ptr<BaseType>> elements;
     for (const auto& elem : node.getElements()) {
         elem->accept(*this);
+        if (dynamic_cast<Exception*>(result.get())) {
+            return;
+        }
         elements.push_back(result);
     }
     result = std::make_shared<List>(elements);
@@ -40,9 +43,17 @@ void InterpreterSpace::Interpreter::visit(ListNode& node) {
 void InterpreterSpace::Interpreter::visit(IndexNode& node) {
     node.getObject()->accept(*this);
     auto obj = result;
+    // Propagate exception from object evaluation
+    if (dynamic_cast<Exception*>(obj.get())) {
+        return;
+    }
 
     node.getIndex()->accept(*this);
     auto idx = result;
+    // Propagate exception from index evaluation
+    if (dynamic_cast<Exception*>(idx.get())) {
+        return;
+    }
 
     auto list = dynamic_cast<List*>(obj.get());
     if (!list) {

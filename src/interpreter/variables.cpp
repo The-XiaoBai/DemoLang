@@ -23,8 +23,13 @@ void InterpreterSpace::Interpreter::visit(IdNode& node) {
 }
 
 void InterpreterSpace::Interpreter::visit(FunctionDefNode& node) {
-    env.setFunction(node.getName(), std::make_shared<FunctionDefNode>(node));
-    result = std::make_shared<String>("");
+    if (node.isAnonymous()) {
+        // Anonymous lambda — don't store, just return a function indicator
+        result = std::make_shared<String>("[function]");
+    } else {
+        env.setFunction(node.getName(), std::make_shared<FunctionDefNode>(node));
+        result = std::make_shared<String>("");
+    }
 }
 
 static void bindParamsImpl(InterpreterSpace::Environment& env,
@@ -62,6 +67,9 @@ void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
             std::vector<std::shared_ptr<BaseType>> args;
             for (const auto& arg : node.getArgs()) {
                 arg->accept(*this);
+                if (dynamic_cast<Exception*>(result.get())) {
+                    return;
+                }
                 args.push_back(result);
             }
 
@@ -73,6 +81,10 @@ void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
             }
 
             funcDef->getBody()->accept(*this);
+            // Without explicit '@', function returns empty string
+            if (!funcDef->getHasExplicitReturn() && !dynamic_cast<Exception*>(result.get())) {
+                result = std::make_shared<String>("");
+            }
             env.scope = savedScope;
             return;
         }
@@ -82,12 +94,16 @@ void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
     std::vector<std::shared_ptr<BaseType>> args;
     for (const auto& arg : node.getArgs()) {
         arg->accept(*this);
+        if (dynamic_cast<Exception*>(result.get())) {
+            return;
+        }
         args.push_back(result);
     }
 
-    // Built-in function
-    result = ValueTypes::getBuiltin(node.getName(), args);
-    if (!dynamic_cast<Exception*>(result.get()) || result->getName() != "Exception") {
+    // Built-in function — returns nullptr if not found
+    auto builtinResult = ValueTypes::getBuiltin(node.getName(), args);
+    if (builtinResult) {
+        result = builtinResult;
         return;
     }
 
@@ -108,6 +124,10 @@ void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
         }
 
         funcDef->getBody()->accept(*this);
+        // Without explicit '@', function returns empty string
+        if (!funcDef->getHasExplicitReturn() && !dynamic_cast<Exception*>(result.get())) {
+            result = std::make_shared<String>("");
+        }
         env.scope = savedScope;
         return;
     }

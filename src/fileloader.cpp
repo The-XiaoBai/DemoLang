@@ -23,33 +23,33 @@ using namespace DemoLang::InterpreterSpace;
 **/
 static void executeFile(const std::string& filename) {
     try {
-        // Read file content
+        // Read entire file content into a single string
         std::ifstream file(filename);
         if (!file.is_open()) throw std::runtime_error("Cannot open file: " + filename);
         
-        std::string line;
-        std::string lastResult;
-        int lineNumber = 0;
+        std::string content((std::istreambuf_iterator<char>(file)),
+                            std::istreambuf_iterator<char>());
+        file.close();
+        
+        // Handle empty file gracefully
+        if (content.empty()) {
+            return;
+        }
         
         Lexer& lexer = Lexer::instance();
         Parser& parser = Parser::instance();
         Interpreter& interpreter = Interpreter::instance();
         
-        while (std::getline(file, line)) {
-            lineNumber++;
-            // Skip empty lines
-            if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos) {
-                continue;
-            }
-            
-            try {
-                auto tokens = lexer.tokenize(line);
-                auto ast = parser.parse(tokens);
-                lastResult = interpreter.interpret(ast);
-            } catch (const std::exception& e) {
-                std::cerr << "Error at line " << lineNumber << ": " << e.what() << std::endl;
-            }
+        // Tokenize, parse, and interpret the entire file as one program
+        // This single-pass approach correctly handles multi-line constructs
+        // (while loops, function definitions, etc.)
+        auto tokens = lexer.tokenize(content);
+        auto ast = parser.parse(tokens);
+        if (!ast) {
+            std::cerr << "Error: Failed to parse file" << std::endl;
+            return;
         }
+        auto lastResult = interpreter.interpret(ast);
         
         if (!lastResult.empty()) {
             std::cout << lastResult << std::endl;

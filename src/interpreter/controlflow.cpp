@@ -26,6 +26,10 @@ static bool isTruthy(const std::shared_ptr<BaseType>& val) {
 void InterpreterSpace::Interpreter::visit(IfNode& node) {
     for (size_t i = 0; i < node.getConditions().size(); ++i) {
         node.getConditions()[i]->accept(*this);
+        // Propagate exception from condition evaluation
+        if (dynamic_cast<Exception*>(result.get())) {
+            return;
+        }
         if (isTruthy(result)) {
             node.getBodies()[i]->accept(*this);
             return;
@@ -41,6 +45,10 @@ void InterpreterSpace::Interpreter::visit(IfNode& node) {
 void InterpreterSpace::Interpreter::visit(WhileNode& node) {
     while (true) {
         node.getCondition()->accept(*this);
+        // Propagate exception from condition evaluation
+        if (dynamic_cast<Exception*>(result.get())) {
+            return;
+        }
         if (!isTruthy(result)) {
             result = std::make_shared<String>("");
             return;
@@ -79,6 +87,9 @@ void InterpreterSpace::Interpreter::visit(StatementSequenceNode& node) {
                 result = lastResult;
                 return;
             }
+            // Propagate any other runtime exception immediately
+            result = lastResult;
+            return;
         }
     }
 

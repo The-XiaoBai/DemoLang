@@ -79,23 +79,12 @@ std::shared_ptr<ASTNode> ParserSpace::BinaryParser::handle() {
                 if (parser.current().type == TokenType::OPERATOR && parser.current().value == "{") {
                     parser.advance(); // Consume '{'
                     
-                    // Parse function body with @ return
-                    std::shared_ptr<ASTNode> body;
-                    if (parser.current().type == TokenType::OPERATOR && parser.current().value == "@") {
-                        parser.advance(); // Consume '@'
-                        body = parser.parseExpression();
-                    } else if (parser.current().type == TokenType::OPERATOR && parser.current().value == "}") {
-                        // Empty function body - returns empty
-                        body = std::make_shared<StringNode>("");
-                    } else {
-                        // Parse expression as statement (no return value)
-                        body = parser.parseExpression();
-                    }
+                    auto [body, hasReturn] = parseFunctionBody(parser);
                     
                     // Expect closing '}'
                     if (parser.current().type == TokenType::OPERATOR && parser.current().value == "}") {
                         parser.advance(); // Consume '}'
-                        return std::make_shared<FunctionDefNode>(funcName, params, paramDefaults, body);
+                        return std::make_shared<FunctionDefNode>(funcName, params, paramDefaults, body, hasReturn);
                     } else {
                         return std::make_shared<ErrorNode>("Expected '}' in function definition");
                     }

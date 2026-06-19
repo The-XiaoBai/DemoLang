@@ -182,16 +182,19 @@ private:
     std::vector<std::string> params;
     std::vector<std::shared_ptr<ASTNode>> paramDefaults;
     std::shared_ptr<ASTNode> body;
+    bool hasExplicitReturn;  // true if body had '@' return marker
 
 public:
     FunctionDefNode(const std::string& funcName, std::vector<std::string> parameters, 
-                   std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody);
+                   std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody,
+                   bool explicitReturn = false);
     void accept(ASTVisitor& visitor) override;
     const std::string& getName() const;
     const std::vector<std::string>& getParams() const;
     const std::vector<std::shared_ptr<ASTNode>>& getParamDefaults() const;
     ASTNode* getBody() const;
     bool isAnonymous() const;
+    bool getHasExplicitReturn() const;
 };
 
 /**

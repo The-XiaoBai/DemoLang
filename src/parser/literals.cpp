@@ -54,7 +54,7 @@ std::shared_ptr<ASTNode> ParserSpace::LiteralFallbackParser::handle() {
         case TokenType::ERROR:
             return std::make_shared<ErrorNode>(token.value);
         default:
-            return nullptr;
+            return std::make_shared<ErrorNode>("Unexpected token: " + token.value);
     }
 }
 

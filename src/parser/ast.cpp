@@ -115,8 +115,10 @@ const std::vector<std::shared_ptr<ASTNode>>& FunctionCallNode::getArgs() const {
 }
 
 FunctionDefNode::FunctionDefNode(const std::string& funcName, std::vector<std::string> parameters,
-                                 std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody)
-    : name(funcName), params(std::move(parameters)), paramDefaults(std::move(defaults)), body(std::move(functionBody)) {}
+                                 std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody,
+                                 bool explicitReturn)
+    : name(funcName), params(std::move(parameters)), paramDefaults(std::move(defaults)),
+      body(std::move(functionBody)), hasExplicitReturn(explicitReturn) {}
 
 void FunctionDefNode::accept(ASTVisitor& visitor) {
     visitor.visit(*this);
@@ -140,6 +142,10 @@ ASTNode* FunctionDefNode::getBody() const {
 
 bool FunctionDefNode::isAnonymous() const {
     return name.empty();
+}
+
+bool FunctionDefNode::getHasExplicitReturn() const {
+    return hasExplicitReturn;
 }
 
 IfNode::IfNode(std::vector<std::shared_ptr<ASTNode>> conds,

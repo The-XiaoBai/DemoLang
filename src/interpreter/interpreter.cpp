@@ -30,7 +30,7 @@ std::shared_ptr<BaseType> InterpreterSpace::Environment::get(const std::string& 
     auto it = scope.find(name);
     if (it != scope.end()) return it->second;
     // Return exception if variable not found
-    return std::make_shared<Exception>("Cannot find variable: " + name);
+    return std::make_shared<Exception>("Undefined variable: " + name);
 }
 
 
