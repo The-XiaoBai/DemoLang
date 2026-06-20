@@ -9,18 +9,18 @@
 using namespace DemoLang::AST;
 using namespace DemoLang::Tokens;
 
-
 namespace DemoLang {
+namespace ParserSpace {
 
-ParserSpace::LiteralFallbackParser::LiteralFallbackParser(Parser& p) : BaseParser(p) {}
+LiteralFallbackParser::LiteralFallbackParser(Parser& p) : BaseParser(p) {}
 
-std::shared_ptr<ASTNode> ParserSpace::LiteralFallbackParser::handle() {
+std::shared_ptr<ASTNode> LiteralFallbackParser::handle() {
+    // This is the last handler in the chain - it handles literal values
     Token token = parser.current();
-    
-    // Only handle literal types, otherwise return nullptr to pass to next handler
+
     switch (token.type) {
         case TokenType::STRING_LITERAL: {
-            parser.advance();
+            parser.advance();  // Consume string literal
             if (token.value.size() >= 2) {
                 char first = token.value.front(), last = token.value.back();
                 if ((first == '"' && last == '"') || (first == '\'' && last == '\''))
@@ -29,7 +29,7 @@ std::shared_ptr<ASTNode> ParserSpace::LiteralFallbackParser::handle() {
             return std::make_shared<ErrorNode>("Invalid string: " + token.value);
         }
         case TokenType::INTEGER_LITERAL: {
-            parser.advance();
+            parser.advance();  // Consume integer literal
             try {
                 long long val = std::stoll(token.value);
                 return std::make_shared<IntNode>(val);
@@ -38,10 +38,10 @@ std::shared_ptr<ASTNode> ParserSpace::LiteralFallbackParser::handle() {
             }
         }
         case TokenType::FLOAT_LITERAL: {
-            parser.advance();
+            parser.advance();  // Consume float literal
             try {
                 char* end;
-                double val = std::strtold(token.value.c_str(), &end);
+                long double val = std::strtold(token.value.c_str(), &end);
                 if (end != token.value.c_str() + token.value.length() || errno == ERANGE)
                     return std::make_shared<ErrorNode>("Invalid float");
                 return std::make_shared<FloatNode>(val);
@@ -58,4 +58,5 @@ std::shared_ptr<ASTNode> ParserSpace::LiteralFallbackParser::handle() {
     }
 }
 
+} // namespace ParserSpace
 } // namespace DemoLang

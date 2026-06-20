@@ -6,9 +6,10 @@
 #include "interpreter.hpp"
 
 using namespace DemoLang::ValueTypes;
-
+using namespace DemoLang::AST;
 
 namespace DemoLang {
+namespace InterpreterSpace {
 
 static bool isTruthy(const std::shared_ptr<BaseType>& val) {
     if (auto integer = dynamic_cast<Integer*>(val.get())) {
@@ -23,13 +24,10 @@ static bool isTruthy(const std::shared_ptr<BaseType>& val) {
     return true;
 }
 
-void InterpreterSpace::Interpreter::visit(IfNode& node) {
+void Interpreter::visit(IfNode& node) {
     for (size_t i = 0; i < node.getConditions().size(); ++i) {
         node.getConditions()[i]->accept(*this);
-        // Propagate exception from condition evaluation
-        if (dynamic_cast<Exception*>(result.get())) {
-            return;
-        }
+        if (dynamic_cast<Exception*>(result.get())) return;  // Propagate exception from condition evaluation
         if (isTruthy(result)) {
             node.getBodies()[i]->accept(*this);
             return;
@@ -42,13 +40,10 @@ void InterpreterSpace::Interpreter::visit(IfNode& node) {
     }
 }
 
-void InterpreterSpace::Interpreter::visit(WhileNode& node) {
+void Interpreter::visit(WhileNode& node) {
     while (true) {
         node.getCondition()->accept(*this);
-        // Propagate exception from condition evaluation
-        if (dynamic_cast<Exception*>(result.get())) {
-            return;
-        }
+        if (dynamic_cast<Exception*>(result.get())) return;  // Propagate exception from condition evaluation
         if (!isTruthy(result)) {
             result = std::make_shared<String>("");
             return;
@@ -57,7 +52,7 @@ void InterpreterSpace::Interpreter::visit(WhileNode& node) {
         node.getBody()->accept(*this);
 
         if (auto exc = dynamic_cast<Exception*>(result.get())) {
-            auto msg = std::any_cast<std::string>(exc->getValue());
+            std::string msg = std::any_cast<std::string>(exc->getValue());
             if (msg == "__break__") {
                 result = std::make_shared<String>("");
                 return;
@@ -65,16 +60,16 @@ void InterpreterSpace::Interpreter::visit(WhileNode& node) {
                 result = std::make_shared<String>("");
                 continue;
             }
-            return;
+            return;  // Propagate any other runtime exception immediately
         }
     }
 }
 
-void InterpreterSpace::Interpreter::visit(LoopControlNode& node) {
+void Interpreter::visit(LoopControlNode& node) {
     result = std::make_shared<Exception>(node.isBreak() ? "__break__" : "__continue__");
 }
 
-void InterpreterSpace::Interpreter::visit(StatementSequenceNode& node) {
+void Interpreter::visit(StatementSequenceNode& node) {
     std::shared_ptr<BaseType> lastResult = std::make_shared<String>("");
 
     for (const auto& stmt : node.getStatements()) {
@@ -82,12 +77,11 @@ void InterpreterSpace::Interpreter::visit(StatementSequenceNode& node) {
         lastResult = result;
 
         if (auto exc = dynamic_cast<Exception*>(lastResult.get())) {
-            auto msg = std::any_cast<std::string>(exc->getValue());
+            std::string msg = std::any_cast<std::string>(exc->getValue());
             if (msg == "__break__" || msg == "__continue__") {
                 result = lastResult;
                 return;
             }
-            // Propagate any other runtime exception immediately
             result = lastResult;
             return;
         }
@@ -96,4 +90,5 @@ void InterpreterSpace::Interpreter::visit(StatementSequenceNode& node) {
     result = lastResult;
 }
 
+} // namespace InterpreterSpace
 } // namespace DemoLang

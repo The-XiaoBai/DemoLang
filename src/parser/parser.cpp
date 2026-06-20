@@ -12,9 +12,7 @@ using namespace DemoLang::Utils;
 using namespace DemoLang::Tokens;
 using namespace DemoLang::AST;
 
-
 namespace DemoLang {
-
 namespace ParserSpace {
 
 Parser::Parser() : current_pos(0) {
@@ -43,62 +41,50 @@ UnaryParser::UnaryParser(Parser& parser, std::vector<std::string> operators)
 BinaryParser::BinaryParser(Parser& parser, std::vector<std::string> operators)
     : BaseParser(parser), operators(operators) {}
 
-} // namespace ParserSpace
+Token Parser::current() const { return current_pos < tokens.size() ? tokens[current_pos] : Token(TokenType::END, ""); }
+void Parser::advance() { if (current_pos < tokens.size()) current_pos++; }
 
-Token ParserSpace::Parser::current() const { return current_pos < tokens.size() ? tokens[current_pos] : Token(TokenType::END, ""); }
-void ParserSpace::Parser::advance() { if (current_pos < tokens.size()) current_pos++; }
-
-bool ParserSpace::Parser::match(TokenType type, const std::string& value) {
-    // Check if current token matches expected type and value
+bool Parser::match(TokenType type, const std::string& value) {
     Token curr = current();
     bool matches = (curr.type == type && curr.value == value);
-    if (matches) advance(); // Move to next token if match found
+    if (matches) advance();
     return matches;
 }
 
-size_t ParserSpace::Parser::savePosition() const {
+size_t Parser::savePosition() const {
     return current_pos;
 }
 
-void ParserSpace::Parser::restorePosition(size_t pos) {
+void Parser::restorePosition(size_t pos) {
     current_pos = pos;
 }
 
-
-std::shared_ptr<ASTNode> ParserSpace::Parser::parse(const std::vector<Token> &tokens) {
-    // Initialize parser state
+std::shared_ptr<ASTNode> Parser::parse(const std::vector<Token> &tokens) {
     this->tokens = tokens;
     this->current_pos = 0;
-    
+
     try {
-        // Start parsing from expression level
         return parseExpression();
     } catch (const std::exception& e) {
-        // Return error node if parsing fails
         return std::make_shared<ErrorNode>(e.what());
     }
 }
 
-std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpression() {
-    // Parse sequence of statements separated by ';'
+std::shared_ptr<ASTNode> Parser::parseExpression() {
     std::vector<std::shared_ptr<ASTNode>> statements;
-    
+
     // Parse first expression
-    auto firstExpr = parseExpressionInternal();
+    auto firstExpr = exprChain.execute();
     statements.push_back(firstExpr);
-    
+
     // Parse additional statements separated by ';'
     while (current().type == TokenType::OPERATOR && current().value == ";") {
-        advance(); // Consume ';'
-        if (current().type == TokenType::END) {
-            // Trailing semicolon at end
-            break;
-        }
-        auto nextExpr = parseExpressionInternal();
+        advance();  // Consume ';'
+        if (current().type == TokenType::END) break;  // Trailing semicolon at end
+        auto nextExpr = exprChain.execute();
         statements.push_back(nextExpr);
     }
-    
-    // Return single statement or sequence node
+
     if (statements.size() == 1) {
         return statements[0];
     } else {
@@ -106,12 +92,8 @@ std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpression() {
     }
 }
 
-std::shared_ptr<ASTNode> ParserSpace::Parser::parseExpressionInternal() {
-    return exprChain.execute();
-}
-
 std::tuple<std::string, std::shared_ptr<ASTNode>, std::shared_ptr<ASTNode>>
-ParserSpace::Parser::parseOneParam() {
+Parser::parseOneParam() {
     if (current().type != TokenType::IDENTIFIER)
         return {"", nullptr, std::make_shared<ErrorNode>("Expected parameter name")};
     std::string paramName = current().value;
@@ -119,13 +101,13 @@ ParserSpace::Parser::parseOneParam() {
     std::shared_ptr<ASTNode> defaultValue = nullptr;
     if (current().type == TokenType::OPERATOR && current().value == "=") {
         advance();
-        defaultValue = parseExpressionInternal();
+        defaultValue = exprChain.execute();
     }
     return {paramName, defaultValue, nullptr};
 }
 
 std::pair<std::shared_ptr<ASTNode>, std::shared_ptr<ASTNode>>
-ParserSpace::Parser::parseOneArg() {
+Parser::parseOneArg() {
     if (current().type == TokenType::IDENTIFIER) {
         std::string idName = current().value;
         advance();
@@ -146,4 +128,5 @@ ParserSpace::Parser::parseOneArg() {
     return {parseExpression(), nullptr};
 }
 
+} // namespace ParserSpace
 } // namespace DemoLang

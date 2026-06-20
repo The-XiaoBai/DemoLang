@@ -9,8 +9,8 @@ using namespace DemoLang::ValueTypes;
 using namespace DemoLang::AST;
 using namespace DemoLang::Utils;
 
-
 namespace DemoLang {
+namespace InterpreterSpace {
 
 // Operator registry type
 using OpRegistry = Registry<std::string, std::shared_ptr<BaseType>, std::shared_ptr<BaseType>, std::shared_ptr<BaseType>>;
@@ -79,7 +79,7 @@ static void initOperators() {
     auto& reg = OpRegistry::instance();
     if (reg.size() > 0) return;
 
-    // Arithmetic: + - *
+    // Arithmetic: + - * /
     reg.registerFunc("+", [](auto l, auto r) -> std::shared_ptr<BaseType> {
         if (l->getName() == "String" && r->getName() == "String") {
             return std::make_shared<String>(std::any_cast<std::string>(l->getValue()) + std::any_cast<std::string>(r->getValue()));
@@ -127,16 +127,12 @@ static std::shared_ptr<BaseType> executeOp(const std::string& op, std::shared_pt
     return std::make_shared<Exception>("Unsupported operator");
 }
 
-// Original visitor implementations
-void InterpreterSpace::Interpreter::visit(UnaryOpNode& node) {
+void Interpreter::visit(UnaryOpNode& node) {
     // First evaluate the operand
     node.getOperand()->accept(*this);
     std::shared_ptr<BaseType> operand = result;
 
-    // Propagate exception from operand evaluation
-    if (dynamic_cast<Exception*>(operand.get())) {
-        return;
-    }
+    if (dynamic_cast<Exception*>(operand.get())) return;
 
     // Type validation: unary operators only work on numeric types
     if (operand->getName() != "Integer" && operand->getName() != "Float") {
@@ -149,14 +145,14 @@ void InterpreterSpace::Interpreter::visit(UnaryOpNode& node) {
         // Unary minus: negate the numeric value
         if (operand->getName() == "Integer") {
             result = std::make_shared<Integer>(-std::any_cast<long long>(operand->getValue()));
-        } else if (operand->getName() == "Float") {
+        } else {
             result = std::make_shared<Float>(-std::any_cast<long double>(operand->getValue()));
         }
     } else if (node.getOp() == "!") {
         // Logical NOT: convert to boolean (0 = false, non-zero = true), then invert
         if (operand->getName() == "Integer") {
             result = std::make_shared<Integer>(std::any_cast<long long>(operand->getValue()) == 0 ? 1 : 0);
-        } else if (operand->getName() == "Float") {
+        } else {
             result = std::make_shared<Integer>(std::any_cast<long double>(operand->getValue()) == 0.0 ? 1 : 0);
         }
     } else {
@@ -165,17 +161,15 @@ void InterpreterSpace::Interpreter::visit(UnaryOpNode& node) {
 }
 
 
-void InterpreterSpace::Interpreter::visit(BinaryOpNode& node) {
+void Interpreter::visit(BinaryOpNode& node) {
     // Handle assignment operator first — left side resolution is not needed
     // since the handler uses the AST IdNode directly (variable may not exist yet)
     if (node.getOp() == "=") {
         // For assignment, right side must still be evaluated
         node.getRight()->accept(*this);
         std::shared_ptr<BaseType> right = result;
-        if (dynamic_cast<Exception*>(right.get())) {
-            return;
-        }
-        
+        if (dynamic_cast<Exception*>(right.get())) return;
+
         if (auto* identifier = dynamic_cast<IdNode*>(node.getLeft())) {
             std::string name = identifier->getName();
             // Check if right side is an anonymous function (lambda)
@@ -195,24 +189,20 @@ void InterpreterSpace::Interpreter::visit(BinaryOpNode& node) {
         }
         return;
     }
-    
+
     // Evaluate left operand first
     node.getLeft()->accept(*this);
     std::shared_ptr<BaseType> left = result;
-    // Propagate exception from left operand evaluation
-    if (dynamic_cast<Exception*>(left.get())) {
-        return;
-    }
+    if (dynamic_cast<Exception*>(left.get())) return;
+
     // Then evaluate right operand
     node.getRight()->accept(*this);
     std::shared_ptr<BaseType> right = result;
-    // Propagate exception from right operand evaluation
-    if (dynamic_cast<Exception*>(right.get())) {
-        return;
-    }
-    
+    if (dynamic_cast<Exception*>(right.get())) return;
+
     // For all other binary operators, use registry
     result = executeOp(node.getOp(), left, right);
 }
 
+} // namespace InterpreterSpace
 } // namespace DemoLang

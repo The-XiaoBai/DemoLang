@@ -10,10 +10,10 @@ using namespace DemoLang::Utils;
 using namespace DemoLang::AST;
 using namespace DemoLang::ValueTypes;
 
-
 namespace DemoLang {
+namespace InterpreterSpace {
 
-void InterpreterSpace::Interpreter::visit(IdNode& node) {
+void Interpreter::visit(IdNode& node) {
     if (env.hasFunction(node.getName())) {
         result = std::make_shared<String>("[function]");
         return;
@@ -22,9 +22,8 @@ void InterpreterSpace::Interpreter::visit(IdNode& node) {
         : std::make_shared<Exception>("Undefined variable: " + node.getName());
 }
 
-void InterpreterSpace::Interpreter::visit(FunctionDefNode& node) {
+void Interpreter::visit(FunctionDefNode& node) {
     if (node.isAnonymous()) {
-        // Anonymous lambda — don't store, just return a function indicator
         result = std::make_shared<String>("[function]");
     } else {
         env.setFunction(node.getName(), std::make_shared<FunctionDefNode>(node));
@@ -32,12 +31,12 @@ void InterpreterSpace::Interpreter::visit(FunctionDefNode& node) {
     }
 }
 
-static void bindParamsImpl(InterpreterSpace::Environment& env,
+static void bindParamsImpl(Environment& env,
                            const std::vector<std::string>& params,
                            const std::vector<std::shared_ptr<ASTNode>>& paramDefaults,
                            const std::vector<std::shared_ptr<BaseType>>& args,
                            std::shared_ptr<BaseType>& result,
-                           InterpreterSpace::Interpreter& interpreter) {
+                           Interpreter& interpreter) {
     size_t bindCount = std::min(params.size(), args.size());
     for (size_t i = 0; i < bindCount; ++i) {
         env.set(params[i], *args[i]);
@@ -59,7 +58,7 @@ static void bindParamsImpl(InterpreterSpace::Environment& env,
     }
 }
 
-void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
+void Interpreter::visit(FunctionCallNode& node) {
     // Lambda immediate execution: (params){body}(args)
     if (node.getCalleeNode()) {
         auto funcDef = dynamic_cast<FunctionDefNode*>(node.getCalleeNode().get());
@@ -67,9 +66,7 @@ void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
             std::vector<std::shared_ptr<BaseType>> args;
             for (const auto& arg : node.getArgs()) {
                 arg->accept(*this);
-                if (dynamic_cast<Exception*>(result.get())) {
-                    return;
-                }
+                if (dynamic_cast<Exception*>(result.get())) return;
                 args.push_back(result);
             }
 
@@ -90,13 +87,10 @@ void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
         }
     }
 
-    // Evaluate arguments
     std::vector<std::shared_ptr<BaseType>> args;
     for (const auto& arg : node.getArgs()) {
         arg->accept(*this);
-        if (dynamic_cast<Exception*>(result.get())) {
-            return;
-        }
+        if (dynamic_cast<Exception*>(result.get())) return;
         args.push_back(result);
     }
 
@@ -135,4 +129,5 @@ void InterpreterSpace::Interpreter::visit(FunctionCallNode& node) {
     result = std::make_shared<Exception>("Unknown function: " + node.getName());
 }
 
+} // namespace InterpreterSpace
 } // namespace DemoLang

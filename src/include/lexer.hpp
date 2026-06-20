@@ -17,20 +17,17 @@ namespace DemoLang {
 
 namespace LexerSpace {
 
-using namespace DemoLang::Utils;
-using namespace DemoLang::Tokens;
-
 
 /**
  * @brief Lexer class for tokenizing input.
 **/
-class Lexer : public Singleton<Lexer> {
-    friend class Singleton<Lexer>;
+class Lexer : public Utils::Singleton<Lexer> {
+    friend class Utils::Singleton<Lexer>;
 
 private:
     std::string input;
     size_t position;
-    Utils::Chain<Token> handlerChain;
+    Utils::Chain<Tokens::Token> handlerChain;
 
 public:
     Lexer();
@@ -39,22 +36,22 @@ public:
     size_t pos() const;
     char current() const;
     void advance(size_t step=1);
-    static std::shared_ptr<Token> getToken(TokenType type, const std::string& value = "");
-    Token nextToken();
-    std::vector<Token> tokenize(const std::string &input);
+    static std::shared_ptr<Tokens::Token> getToken(Tokens::TokenType type, const std::string& value = "");
+    Tokens::Token nextToken();
+    std::vector<Tokens::Token> tokenize(const std::string &input);
 };
 
 
 /**
  * @brief Base handler for token recognition.
 **/
-class BaseHandler : public Handler<Token> {
+class BaseHandler : public Utils::Handler<Tokens::Token> {
 protected:
     Lexer& lexer;
 
 public:
     BaseHandler(Lexer& lexer);
-    virtual std::shared_ptr<Token> handle() = 0;
+    virtual std::shared_ptr<Tokens::Token> handle() = 0;
 };
 
 
@@ -64,7 +61,7 @@ public:
 class EOFHandler : public BaseHandler {
 public:
     EOFHandler(Lexer& lexer);
-    std::shared_ptr<Token> handle();
+    std::shared_ptr<Tokens::Token> handle();
 };
 
 
@@ -74,7 +71,7 @@ public:
 class WhitespaceHandler : public BaseHandler {
 public:
     WhitespaceHandler(Lexer& lexer);
-    std::shared_ptr<Token> handle();
+    std::shared_ptr<Tokens::Token> handle();
 };
 
 
@@ -84,7 +81,7 @@ public:
 class OperatorHandler : public BaseHandler {
 public:
     OperatorHandler(Lexer& lexer);
-    std::shared_ptr<Token> handle();
+    std::shared_ptr<Tokens::Token> handle();
 };
 
 
@@ -94,7 +91,7 @@ public:
 class IdentifierHandler : public BaseHandler {
 public:
     IdentifierHandler(Lexer& lexer);
-    std::shared_ptr<Token> handle();
+    std::shared_ptr<Tokens::Token> handle();
 };
 
 
@@ -104,7 +101,7 @@ public:
 class NumberHandler : public BaseHandler {
 public:
     NumberHandler(Lexer& lexer);
-    std::shared_ptr<Token> handle();
+    std::shared_ptr<Tokens::Token> handle();
 };
 
 
@@ -114,7 +111,7 @@ public:
 class StringHandler : public BaseHandler {
 public:
     StringHandler(Lexer& lexer);
-    std::shared_ptr<Token> handle();
+    std::shared_ptr<Tokens::Token> handle();
 };
 
 
@@ -124,7 +121,7 @@ public:
 class UnknownHandler : public BaseHandler {
 public:
     UnknownHandler(Lexer& lexer);
-    std::shared_ptr<Token> handle();
+    std::shared_ptr<Tokens::Token> handle();
 };
 
 } // namespace LexerSpace

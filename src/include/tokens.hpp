@@ -33,7 +33,7 @@ enum class TokenType {
 /**
  * @brief List of supported whitespaces.
 **/
-const std::vector<std::string> whitespaces = {
+inline const std::vector<std::string> whitespaces = {
     " ", "\t", "\n", "\r"
 };
 
@@ -41,7 +41,7 @@ const std::vector<std::string> whitespaces = {
 /**
  * @brief List of supported operators.
 **/
-const std::vector<std::string> operators = {
+inline const std::vector<std::string> operators = {
     "==", "!=", ">=", "<=", "##", "??",
     ">", "<", "=", "(", ")", "{", "}", "[", "]",
     "+", "-", "*", "/",

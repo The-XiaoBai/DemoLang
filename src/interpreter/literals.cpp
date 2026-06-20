@@ -8,52 +8,44 @@
 using namespace DemoLang::ValueTypes;
 using namespace DemoLang::AST;
 
-
 namespace DemoLang {
+namespace InterpreterSpace {
 
-void InterpreterSpace::Interpreter::visit(IntNode& node) {
+void Interpreter::visit(IntNode& node) {
     result = std::make_shared<Integer>(node.getValue());
 }
 
-void InterpreterSpace::Interpreter::visit(FloatNode& node) {
+void Interpreter::visit(FloatNode& node) {
     result = std::make_shared<Float>(node.getValue());
 }
 
-void InterpreterSpace::Interpreter::visit(StringNode& node) {
+void Interpreter::visit(StringNode& node) {
     result = std::make_shared<String>(node.getValue());
 }
 
-void InterpreterSpace::Interpreter::visit(ErrorNode& node) {
+void Interpreter::visit(ErrorNode& node) {
     result = std::make_shared<Exception>(node.getMessage());
 }
 
 
-void InterpreterSpace::Interpreter::visit(ListNode& node) {
+void Interpreter::visit(ListNode& node) {
     std::vector<std::shared_ptr<BaseType>> elements;
     for (const auto& elem : node.getElements()) {
         elem->accept(*this);
-        if (dynamic_cast<Exception*>(result.get())) {
-            return;
-        }
+        if (dynamic_cast<Exception*>(result.get())) return;  // Propagate exception from element evaluation
         elements.push_back(result);
     }
     result = std::make_shared<List>(elements);
 }
 
-void InterpreterSpace::Interpreter::visit(IndexNode& node) {
+void Interpreter::visit(IndexNode& node) {
     node.getObject()->accept(*this);
     auto obj = result;
-    // Propagate exception from object evaluation
-    if (dynamic_cast<Exception*>(obj.get())) {
-        return;
-    }
+    if (dynamic_cast<Exception*>(obj.get())) return;  // Propagate exception from object evaluation
 
     node.getIndex()->accept(*this);
     auto idx = result;
-    // Propagate exception from index evaluation
-    if (dynamic_cast<Exception*>(idx.get())) {
-        return;
-    }
+    if (dynamic_cast<Exception*>(idx.get())) return;  // Propagate exception from index evaluation
 
     auto list = dynamic_cast<List*>(obj.get());
     if (!list) {
@@ -78,4 +70,5 @@ void InterpreterSpace::Interpreter::visit(IndexNode& node) {
     result = items[static_cast<size_t>(pos)];
 }
 
+} // namespace InterpreterSpace
 } // namespace DemoLang

@@ -20,46 +20,41 @@ namespace DemoLang {
 
 namespace ParserSpace {
 
-using namespace DemoLang::Utils;
-using namespace DemoLang::Tokens;
-using namespace DemoLang::AST;
-
 
 /**
  * @brief Parser class for converting tokens to AST.
 **/
-class Parser : public Singleton<Parser> {
-    friend class Singleton<Parser>;
+class Parser : public Utils::Singleton<Parser> {
+    friend class Utils::Singleton<Parser>;
 
 private:
-    std::vector<Token> tokens;
+    std::vector<Tokens::Token> tokens;
     size_t current_pos;
-    Utils::Chain<ASTNode> exprChain;
+    Utils::Chain<AST::ASTNode> exprChain;
 
 public:
     Parser();
     
-    Token current() const;
+    Tokens::Token current() const;
     void advance();
-    bool match(TokenType type, const std::string& value);
+    bool match(Tokens::TokenType type, const std::string& value);
     size_t savePosition() const;
     void restorePosition(size_t pos);
-    std::shared_ptr<ASTNode> parse(const std::vector<Token> &tokens);
-    std::shared_ptr<ASTNode> parseExpression();
-    std::shared_ptr<ASTNode> parseExpressionInternal();
+    std::shared_ptr<AST::ASTNode> parse(const std::vector<Tokens::Token> &tokens);
+    std::shared_ptr<AST::ASTNode> parseExpression();
 
     /**
      * @brief Parse a parameter with optional default value.
      * @return (paramName, defaultValue, errorNode) - errorNode is non-null on error.
     **/
-    std::tuple<std::string, std::shared_ptr<ASTNode>, std::shared_ptr<ASTNode>>
+    std::tuple<std::string, std::shared_ptr<AST::ASTNode>, std::shared_ptr<AST::ASTNode>>
     parseOneParam();
 
     /**
      * @brief Parse a function call argument.
      * @return (argNode, errorNode) - errorNode is non-null on error.
     **/
-    std::pair<std::shared_ptr<ASTNode>, std::shared_ptr<ASTNode>>
+    std::pair<std::shared_ptr<AST::ASTNode>, std::shared_ptr<AST::ASTNode>>
     parseOneArg();
 };
 
@@ -68,19 +63,19 @@ public:
  *        Does NOT consume the opening '{' or closing '}'.
  * @return (bodyNode, hasReturn)
 **/
-std::pair<std::shared_ptr<ASTNode>, bool> parseFunctionBody(Parser& parser);
+std::pair<std::shared_ptr<AST::ASTNode>, bool> parseFunctionBody(Parser& parser);
 
 
 /**
  * @brief Base parser for AST node generation.
 **/
-class BaseParser : public Handler<ASTNode> {
+class BaseParser : public Utils::Handler<AST::ASTNode> {
 protected:
     Parser& parser;
 
 public:
     BaseParser(Parser& parser);
-    virtual std::shared_ptr<ASTNode> handle() = 0;
+    virtual std::shared_ptr<AST::ASTNode> handle() = 0;
 };
 
 
@@ -93,7 +88,7 @@ private:
 
 public:
     UnaryParser(Parser& parser, std::vector<std::string> operators);
-    std::shared_ptr<ASTNode> handle() override;
+    std::shared_ptr<AST::ASTNode> handle() override;
 };
 
 
@@ -106,7 +101,7 @@ private:
 
 public:
     BinaryParser(Parser& parser, std::vector<std::string> operators);
-    std::shared_ptr<ASTNode> handle() override;
+    std::shared_ptr<AST::ASTNode> handle() override;
 };
 
 
@@ -116,7 +111,7 @@ public:
 class ListParser : public BaseParser {
 public:
     ListParser(Parser& parser);
-    std::shared_ptr<ASTNode> handle() override;
+    std::shared_ptr<AST::ASTNode> handle() override;
 };
 
 
@@ -126,7 +121,7 @@ public:
 class FunctionCallParser : public BaseParser {
 public:
     FunctionCallParser(Parser& parser);
-    std::shared_ptr<ASTNode> handle() override;
+    std::shared_ptr<AST::ASTNode> handle() override;
 };
 
 
@@ -136,7 +131,7 @@ public:
 class IdentifierParser : public BaseParser {
 public:
     IdentifierParser(Parser& parser);
-    std::shared_ptr<ASTNode> handle() override;
+    std::shared_ptr<AST::ASTNode> handle() override;
 };
 
 
@@ -146,7 +141,7 @@ public:
 class IfParser : public BaseParser {
 public:
     IfParser(Parser& parser);
-    std::shared_ptr<ASTNode> handle() override;
+    std::shared_ptr<AST::ASTNode> handle() override;
 };
 
 
@@ -156,7 +151,7 @@ public:
 class WhileParser : public BaseParser {
 public:
     WhileParser(Parser& parser);
-    std::shared_ptr<ASTNode> handle() override;
+    std::shared_ptr<AST::ASTNode> handle() override;
 };
 
 
@@ -166,7 +161,7 @@ public:
 class LoopControlParser : public BaseParser {
 public:
     LoopControlParser(Parser& parser);
-    std::shared_ptr<ASTNode> handle() override;
+    std::shared_ptr<AST::ASTNode> handle() override;
 };
 
 
@@ -176,7 +171,7 @@ public:
 class ParenthesizedParser : public BaseParser {
 public:
     ParenthesizedParser(Parser& parser);
-    std::shared_ptr<ASTNode> handle() override;
+    std::shared_ptr<AST::ASTNode> handle() override;
 };
 
 
@@ -186,7 +181,7 @@ public:
 class LiteralFallbackParser : public BaseParser {
 public:
     LiteralFallbackParser(Parser& parser);
-    std::shared_ptr<ASTNode> handle() override;
+    std::shared_ptr<AST::ASTNode> handle() override;
 };
 
 

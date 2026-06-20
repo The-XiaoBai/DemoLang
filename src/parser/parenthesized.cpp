@@ -9,7 +9,6 @@
 using namespace DemoLang::AST;
 using namespace DemoLang::Tokens;
 
-
 namespace DemoLang {
 namespace ParserSpace {
 
@@ -17,7 +16,7 @@ std::pair<std::shared_ptr<ASTNode>, bool> parseFunctionBody(Parser& parser) {
     std::shared_ptr<ASTNode> body;
     bool hasReturn = false;
     if (parser.current().type == TokenType::OPERATOR && parser.current().value == "@") {
-        parser.advance(); // Consume '@'
+        parser.advance();
         hasReturn = true;
         if (parser.current().type == TokenType::OPERATOR && parser.current().value == "}") {
             body = std::make_shared<ErrorNode>("Expected expression after '@' return marker");
@@ -33,47 +32,41 @@ std::pair<std::shared_ptr<ASTNode>, bool> parseFunctionBody(Parser& parser) {
 }
 
 static std::pair<std::shared_ptr<ASTNode>, bool> parseLambda(Parser& parser) {
-    // Expect ')' after parameters
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
         return {std::make_shared<ErrorNode>("Expected ')' after parameters"), false};
-    parser.advance(); // Consume ')'
+    parser.advance();
 
-    // Expect '{' for lambda body
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != "{")
         return {std::make_shared<ErrorNode>("Expected '{' for lambda body"), false};
-    parser.advance(); // Consume '{'
+    parser.advance();
 
     auto [body, hasReturn] = parseFunctionBody(parser);
 
-    // Expect closing '}'
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != "}")
         return {std::make_shared<ErrorNode>("Expected '}' for lambda body"), false};
-    parser.advance(); // Consume '}'
+    parser.advance();
 
     return {body, hasReturn};
 }
 
-} // namespace ParserSpace
+ParenthesizedParser::ParenthesizedParser(Parser& p) : BaseParser(p) {}
 
-ParserSpace::ParenthesizedParser::ParenthesizedParser(Parser& p) : BaseParser(p) {}
-
-std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
+std::shared_ptr<ASTNode> ParenthesizedParser::handle() {
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != "(") {
         return nextHandler->handle();
     }
-    parser.advance(); // Consume '('
+    parser.advance();
 
-    // Check for empty-parameter lambda: (){body}
+    // Empty-parameter lambda: (){body}
     if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
         auto [body, hasReturn] = parseLambda(parser);
         auto lambda = std::make_shared<FunctionDefNode>("", std::vector<std::string>{}, std::vector<std::shared_ptr<ASTNode>>{}, body, hasReturn);
 
-        // Check for immediate lambda call: (lambda)(args)
         if (parser.current().type == TokenType::OPERATOR && parser.current().value == "(") {
-            parser.advance(); // Consume '('
+            parser.advance();
             std::vector<std::shared_ptr<ASTNode>> args;
             if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
-                parser.advance(); // Consume ')'
+                parser.advance();
             } else {
                 args.push_back(parser.parseExpression());
                 while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
@@ -82,19 +75,16 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
                 }
                 if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
                     return std::make_shared<ErrorNode>("Expected ')' in lambda call");
-                parser.advance(); // Consume ')'
+                parser.advance();
             }
             return std::make_shared<FunctionCallNode>(lambda, args);
         }
         return lambda;
     }
 
-    // Check for lambda: (params){body}
-    // Distinguish from regular expressions like (x+y) by checking that
-    // after the first IDENTIFIER, the next token is ')' or ',' (lambda) vs
-    // an operator like '+', '*', etc. (regular expression).
+    // lambda: (params){body}
     if (parser.current().type == TokenType::IDENTIFIER) {
-        size_t afterParen = parser.savePosition();  // position just after '('
+        size_t afterParen = parser.savePosition();
         std::vector<std::string> params;
         std::vector<std::shared_ptr<ASTNode>> paramDefaults;
 
@@ -103,12 +93,11 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
         params.push_back(pName);
         paramDefaults.push_back(pDef);
 
-        // After first param, check if next token is ')' or ',' — only then it's a lambda
         if (parser.current().type == TokenType::OPERATOR &&
             (parser.current().value == ")" || parser.current().value == ",")) {
 
             while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
-                parser.advance(); // Consume ','
+                parser.advance();
                 auto [rpName, rpDef, rerr] = parser.parseOneParam();
                 if (rerr) return std::make_shared<ErrorNode>("Expected parameter name after ','");
                 params.push_back(rpName);
@@ -118,12 +107,11 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
             auto [body, hasReturn] = parseLambda(parser);
             auto lambda = std::make_shared<FunctionDefNode>("", params, paramDefaults, body, hasReturn);
 
-            // Check for immediate lambda call: (lambda)(args)
             if (parser.current().type == TokenType::OPERATOR && parser.current().value == "(") {
-                parser.advance(); // Consume '('
+                parser.advance();
                 std::vector<std::shared_ptr<ASTNode>> args;
                 if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
-                    parser.advance(); // Consume ')'
+                    parser.advance();
                 } else {
                     args.push_back(parser.parseExpression());
                     while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
@@ -132,14 +120,13 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
                     }
                     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
                         return std::make_shared<ErrorNode>("Expected ')' in lambda call");
-                    parser.advance(); // Consume ')'
+                    parser.advance();
                 }
                 return std::make_shared<FunctionCallNode>(lambda, args);
             }
             return lambda;
         }
 
-        // Not a lambda — restore to right after '(' and fall through to expression parsing
         parser.restorePosition(afterParen);
     }
 
@@ -147,22 +134,19 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
     if (parser.current().type == TokenType::END)
         return std::make_shared<ErrorNode>("Unexpected end of input, expected closing parenthesis");
 
-    // Parse as regular expression using parseExpressionInternal to preserve outer operators
-    auto expr = parser.parseExpressionInternal();
+    // Parse as regular expression using parseExpression to preserve outer operators
+    auto expr = parser.parseExpression();
 
-    // Expect closing parenthesis
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
         return std::make_shared<ErrorNode>("Expected closing parenthesis");
-    parser.advance(); // Consume ')'
+    parser.advance();
 
-    // Check for lambda call: (lambda)(args)
     if (auto* funcDef = dynamic_cast<FunctionDefNode*>(expr.get())) {
         if (funcDef->isAnonymous() && parser.current().type == TokenType::OPERATOR && parser.current().value == "(") {
-            parser.advance(); // Consume '('
-
+            parser.advance();
             std::vector<std::shared_ptr<ASTNode>> args;
             if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
-                parser.advance(); // Consume ')'
+                parser.advance();
             } else {
                 args.push_back(parser.parseExpression());
                 while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
@@ -171,7 +155,7 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
                 }
                 if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
                     return std::make_shared<ErrorNode>("Expected ')' in lambda call");
-                parser.advance(); // Consume ')'
+                parser.advance();
             }
             return std::make_shared<FunctionCallNode>(expr, args);
         }
@@ -180,4 +164,5 @@ std::shared_ptr<ASTNode> ParserSpace::ParenthesizedParser::handle() {
     return expr;
 }
 
+} // namespace ParserSpace
 } // namespace DemoLang

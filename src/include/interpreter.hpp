@@ -18,28 +18,24 @@ namespace DemoLang {
 
 namespace InterpreterSpace {
 
-using namespace DemoLang::ValueTypes;
-using namespace DemoLang::AST;
-using Utils::Singleton;
-
 
 /**
  * @brief Environment to store variables in the current execution context
 **/
 class Environment {
 private:
-    std::unordered_map<std::string, std::shared_ptr<BaseType>> scope;
-    std::unordered_map<std::string, std::shared_ptr<ASTNode>> functions;
+    std::unordered_map<std::string, std::shared_ptr<ValueTypes::BaseType>> scope;
+    std::unordered_map<std::string, std::shared_ptr<AST::ASTNode>> functions;
 
 public:
     Environment();
     
     bool has(const std::string& name) const;
-    std::shared_ptr<BaseType> get(const std::string& name) const;
-    void set(const std::string& name, const BaseType& value);
+    std::shared_ptr<ValueTypes::BaseType> get(const std::string& name) const;
+    void set(const std::string& name, const ValueTypes::BaseType& value);
     bool hasFunction(const std::string& name) const;
-    std::shared_ptr<ASTNode> getFunction(const std::string& name) const;
-    void setFunction(const std::string& name, std::shared_ptr<ASTNode> func);
+    std::shared_ptr<AST::ASTNode> getFunction(const std::string& name) const;
+    void setFunction(const std::string& name, std::shared_ptr<AST::ASTNode> func);
     
     // Allow Interpreter to access scope directly
     friend class Interpreter;
@@ -49,32 +45,32 @@ public:
 /**
  * @brief Interpreter class
 **/
-class Interpreter : public Singleton<Interpreter>, public ASTVisitor {
-    friend class Singleton<Interpreter>;
+class Interpreter : public Utils::Singleton<Interpreter>, public AST::ASTVisitor {
+    friend class Utils::Singleton<Interpreter>;
 
 private:
     Environment env = Environment();
-    std::shared_ptr<BaseType> result;
+    std::shared_ptr<ValueTypes::BaseType> result;
 
 public:
     Interpreter();
-    std::string interpret(const std::shared_ptr<ASTNode>& node);
+    std::string interpret(const std::shared_ptr<AST::ASTNode>& node);
     
-    void visit(UnaryOpNode& node) override;
-    void visit(BinaryOpNode& node) override;
-    void visit(IdNode& node) override;
-    void visit(IntNode& node) override;
-    void visit(FloatNode& node) override;
-    void visit(StringNode& node) override;
-    void visit(ErrorNode& node) override;
-    void visit(FunctionCallNode& node) override;
-    void visit(FunctionDefNode& node) override;
-    void visit(IfNode& node) override;
-    void visit(WhileNode& node) override;
-    void visit(LoopControlNode& node) override;
-    void visit(StatementSequenceNode& node) override;
-    void visit(ListNode& node) override;
-    void visit(IndexNode& node) override;
+    void visit(AST::UnaryOpNode& node) override;
+    void visit(AST::BinaryOpNode& node) override;
+    void visit(AST::IdNode& node) override;
+    void visit(AST::IntNode& node) override;
+    void visit(AST::FloatNode& node) override;
+    void visit(AST::StringNode& node) override;
+    void visit(AST::ErrorNode& node) override;
+    void visit(AST::FunctionCallNode& node) override;
+    void visit(AST::FunctionDefNode& node) override;
+    void visit(AST::IfNode& node) override;
+    void visit(AST::WhileNode& node) override;
+    void visit(AST::LoopControlNode& node) override;
+    void visit(AST::StatementSequenceNode& node) override;
+    void visit(AST::ListNode& node) override;
+    void visit(AST::IndexNode& node) override;
 };
 
 } // namespace InterpreterSpace

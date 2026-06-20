@@ -9,51 +9,48 @@
 using namespace DemoLang::AST;
 using namespace DemoLang::Tokens;
 
-
 namespace DemoLang {
+namespace ParserSpace {
 
-std::shared_ptr<ASTNode> ParserSpace::UnaryParser::handle() {
+std::shared_ptr<ASTNode> UnaryParser::handle() {
+    // Check if current token is a unary operator (e.g., ! or -)
     Token token = parser.current();
-    // Check if current token is a unary operator we handle
     if (token.type == TokenType::OPERATOR && std::find(operators.begin(), operators.end(), token.value) != operators.end()) {
-        parser.advance(); // Consume the operator
-        auto operand = nextHandler->handle(); // Parse the operand (right-associative)
+        parser.advance();  // Consume operator
+        auto operand = nextHandler->handle();  // Parse operand
         if (!operand) return std::make_shared<ErrorNode>("Expected expression after: " + token.value);
         return std::make_shared<UnaryOpNode>(token.value, std::move(operand));
     }
-    // Not a unary operator, pass to next handler
-    return nextHandler->handle();
+    return nextHandler->handle();  // Not a unary operator, try next handler
 }
 
 
-std::shared_ptr<ASTNode> ParserSpace::BinaryParser::handle() {
-    auto left = nextHandler->handle();  // Parse left operand first
+std::shared_ptr<ASTNode> BinaryParser::handle() {
+    // Parse left operand first
+    auto left = nextHandler->handle();
     if (!left) return std::make_shared<ErrorNode>("Left part can not be parsed");
-    
-    // Process a chain of binary operations with same precedence (left-associative)
+
+    // Try to parse binary operators in a loop (for operator precedence)
     while (true) {
         Token token = parser.current();
-        // Check if current token is a binary operator we handle
         if (token.type != TokenType::OPERATOR
             || std::find(operators.begin(), operators.end(), token.value) == operators.end())
-            break;
-        
+            break;  // Not a binary operator we handle
+
         std::string op = token.value;
-        parser.advance(); // Consume the operator
-        
-        // Check for function definition: identifier = (params) { body }
+        parser.advance();  // Consume operator
+
+        // Special case: function definition with identifier = (params) { body }
         if (op == "=" && dynamic_cast<IdNode*>(left.get()) != nullptr) {
             if (parser.current().type == TokenType::OPERATOR && parser.current().value == "(") {
                 std::string funcName = dynamic_cast<IdNode*>(left.get())->getName();
-                parser.advance(); // Consume '('
-                
-                // Parse parameters
+                parser.advance();
+
                 std::vector<std::string> params;
                 std::vector<std::shared_ptr<ASTNode>> paramDefaults;
 
-                // Handle empty parameter list
                 if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
-                    parser.advance(); // Consume ')'
+                    parser.advance();
                 } else {
                     auto [pName, pDef, err] = parser.parseOneParam();
                     if (err) return err;
@@ -61,7 +58,7 @@ std::shared_ptr<ASTNode> ParserSpace::BinaryParser::handle() {
                     paramDefaults.push_back(pDef);
 
                     while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
-                        parser.advance(); // Consume ','
+                        parser.advance();
                         auto [rpName, rpDef, rerr] = parser.parseOneParam();
                         if (rerr) return std::make_shared<ErrorNode>("Expected parameter name after ','");
                         params.push_back(rpName);
@@ -69,21 +66,19 @@ std::shared_ptr<ASTNode> ParserSpace::BinaryParser::handle() {
                     }
 
                     if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
-                        parser.advance(); // Consume ')'
+                        parser.advance();
                     } else {
                         return std::make_shared<ErrorNode>("Expected ')' in function definition");
                     }
                 }
-                
-                // Expect '{' for function body
+
                 if (parser.current().type == TokenType::OPERATOR && parser.current().value == "{") {
-                    parser.advance(); // Consume '{'
-                    
+                    parser.advance();
+
                     auto [body, hasReturn] = parseFunctionBody(parser);
-                    
-                    // Expect closing '}'
+
                     if (parser.current().type == TokenType::OPERATOR && parser.current().value == "}") {
-                        parser.advance(); // Consume '}'
+                        parser.advance();
                         return std::make_shared<FunctionDefNode>(funcName, params, paramDefaults, body, hasReturn);
                     } else {
                         return std::make_shared<ErrorNode>("Expected '}' in function definition");
@@ -92,22 +87,23 @@ std::shared_ptr<ASTNode> ParserSpace::BinaryParser::handle() {
                     return std::make_shared<ErrorNode>("Expected '{' in function definition");
                 }
             }
-            // Not a function definition, continue to parse as regular assignment
         }
-        
-        auto right = nextHandler->handle();  // Parse right operand
+
+        // Parse right operand
+        auto right = nextHandler->handle();
         if (!right) return std::make_shared<ErrorNode>("Expected right operand for: " + op);
 
-        // Special validation for assignment operator
+        // Validate assignment target
         if (token.value == "=" && dynamic_cast<IdNode*>(left.get()) == nullptr)
             return std::make_shared<ErrorNode>("Left side of assignment must be an identifier");
-        
-        // Create binary operation node and continue for chaining
+
+        // Create binary operation node
         left = std::make_shared<BinaryOpNode>(op, std::move(left), std::move(right));
-        if (token.value == "=") break;  // Assignment is right-associative and doesn't chain
+        if (token.value == "=") break;  // Assignment is right-associative, break to avoid chaining
     }
-    
+
     return left;
 }
 
+} // namespace ParserSpace
 } // namespace DemoLang

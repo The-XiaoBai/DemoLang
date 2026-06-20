@@ -9,34 +9,31 @@
 using namespace DemoLang::AST;
 using namespace DemoLang::Tokens;
 
-
 namespace DemoLang {
+namespace ParserSpace {
 
-ParserSpace::FunctionCallParser::FunctionCallParser(Parser& p) : BaseParser(p) {}
+FunctionCallParser::FunctionCallParser(Parser& p) : BaseParser(p) {}
 
-std::shared_ptr<ASTNode> ParserSpace::FunctionCallParser::handle() {
+std::shared_ptr<ASTNode> FunctionCallParser::handle() {
+    // Check if current token is an identifier (potential function name)
     if (parser.current().type != TokenType::IDENTIFIER) {
         return nextHandler->handle();
     }
 
-    // Check if next token is '(' to confirm this is a function call
-    // IMPORTANT: Only consume the identifier if we confirm it's a function call
-    // This allows IdentifierParser to handle plain identifiers
     std::string funcName = parser.current().value;
-    size_t savedPos = parser.savePosition();  // Save position in case it's not a function call
-    
-    parser.advance(); // Consume identifier
+    size_t savedPos = parser.savePosition();  // Save position for backtracking
 
-    // Check for function call: identifier(args) or identifier[...]()
+    parser.advance();  // Consume identifier
+
+    // Check if identifier is followed by '(' (function call) or '[' (index access)
     if (parser.current().type == TokenType::OPERATOR && parser.current().value == "(") {
-        parser.advance(); // Consume '('
+        parser.advance();  // Consume '('
     } else if (parser.current().type == TokenType::OPERATOR && parser.current().value == "[") {
-        // Index access first, then will be followed by () for function call
-        // Restore position and let IdentifierParser handle this
+        // This is an index access, not a function call
         parser.restorePosition(savedPos);
         return nextHandler->handle();
     } else {
-        // Not a function call, restore position and let next handler process
+        // This is a standalone identifier, not a function call
         parser.restorePosition(savedPos);
         return nextHandler->handle();
     }
@@ -44,9 +41,9 @@ std::shared_ptr<ASTNode> ParserSpace::FunctionCallParser::handle() {
     // Parse arguments
     std::vector<std::shared_ptr<ASTNode>> args;
 
-    // Empty argument list
+    // Check for empty argument list
     if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
-        parser.advance(); // Consume ')'
+        parser.advance();  // Consume ')'
         return std::make_shared<FunctionCallNode>(funcName, args);
     }
 
@@ -55,9 +52,9 @@ std::shared_ptr<ASTNode> ParserSpace::FunctionCallParser::handle() {
     if (firstErr) return firstErr;
     args.push_back(firstArg);
 
-    // Parse remaining arguments
+    // Parse remaining arguments separated by ','
     while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
-        parser.advance(); // Consume ','
+        parser.advance();  // Consume ','
         if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")")
             return std::make_shared<ErrorNode>("Unexpected ',' before ')'");
         auto [arg, err] = parser.parseOneArg();
@@ -65,12 +62,13 @@ std::shared_ptr<ASTNode> ParserSpace::FunctionCallParser::handle() {
         args.push_back(arg);
     }
 
-    // Expect closing ')'
+    // Expect closing parenthesis
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
         return std::make_shared<ErrorNode>("Expected ')' in function call");
-    parser.advance(); // Consume ')'
+    parser.advance();  // Consume ')'
 
     return std::make_shared<FunctionCallNode>(funcName, args);
 }
 
+} // namespace ParserSpace
 } // namespace DemoLang
