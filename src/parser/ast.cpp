@@ -93,10 +93,10 @@ const std::string& ErrorNode::getMessage() const {
 }
 
 FunctionCallNode::FunctionCallNode(const std::string& funcName, std::vector<std::shared_ptr<ASTNode>> arguments)
-    : name(funcName), lambdaNode(nullptr), args(std::move(arguments)) {}
+    : name(funcName), calleeNode(nullptr), args(std::move(arguments)) {}
 
-FunctionCallNode::FunctionCallNode(std::shared_ptr<ASTNode> lambda, std::vector<std::shared_ptr<ASTNode>> arguments)
-    : name(""), lambdaNode(std::move(lambda)), args(std::move(arguments)) {}
+FunctionCallNode::FunctionCallNode(std::shared_ptr<ASTNode> callee, std::vector<std::shared_ptr<ASTNode>> arguments)
+    : name(""), calleeNode(std::move(callee)), args(std::move(arguments)) {}
 
 void FunctionCallNode::accept(ASTVisitor& visitor) {
     visitor.visit(*this);
@@ -106,8 +106,8 @@ const std::string& FunctionCallNode::getName() const {
     return name;
 }
 
-std::shared_ptr<ASTNode> FunctionCallNode::getLambdaNode() const {
-    return lambdaNode;
+std::shared_ptr<ASTNode> FunctionCallNode::getCalleeNode() const {
+    return calleeNode;
 }
 
 const std::vector<std::shared_ptr<ASTNode>>& FunctionCallNode::getArgs() const {
@@ -115,8 +115,10 @@ const std::vector<std::shared_ptr<ASTNode>>& FunctionCallNode::getArgs() const {
 }
 
 FunctionDefNode::FunctionDefNode(const std::string& funcName, std::vector<std::string> parameters,
-                                 std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody)
-    : name(funcName), params(std::move(parameters)), paramDefaults(std::move(defaults)), body(std::move(functionBody)) {}
+                                 std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody,
+                                 bool explicitReturn)
+    : name(funcName), params(std::move(parameters)), paramDefaults(std::move(defaults)),
+      body(std::move(functionBody)), hasExplicitReturn(explicitReturn) {}
 
 void FunctionDefNode::accept(ASTVisitor& visitor) {
     visitor.visit(*this);
@@ -138,24 +140,12 @@ ASTNode* FunctionDefNode::getBody() const {
     return body.get();
 }
 
-LambdaNode::LambdaNode(std::vector<std::string> parameters,
-                       std::vector<std::shared_ptr<ASTNode>> defaults, std::shared_ptr<ASTNode> functionBody)
-    : params(std::move(parameters)), paramDefaults(std::move(defaults)), body(std::move(functionBody)) {}
-
-void LambdaNode::accept(ASTVisitor& visitor) {
-    visitor.visit(*this);
+bool FunctionDefNode::isAnonymous() const {
+    return name.empty();
 }
 
-const std::vector<std::string>& LambdaNode::getParams() const {
-    return params;
-}
-
-const std::vector<std::shared_ptr<ASTNode>>& LambdaNode::getParamDefaults() const {
-    return paramDefaults;
-}
-
-ASTNode* LambdaNode::getBody() const {
-    return body.get();
+bool FunctionDefNode::getHasExplicitReturn() const {
+    return hasExplicitReturn;
 }
 
 IfNode::IfNode(std::vector<std::shared_ptr<ASTNode>> conds,
@@ -194,16 +184,18 @@ ASTNode* WhileNode::getBody() const {
     return body.get();
 }
 
-BreakNode::BreakNode() {}
+LoopControlNode::LoopControlNode(LoopControlType t) : type(t) {}
 
-void BreakNode::accept(ASTVisitor& visitor) {
+void LoopControlNode::accept(ASTVisitor& visitor) {
     visitor.visit(*this);
 }
 
-ContinueNode::ContinueNode() {}
+bool LoopControlNode::isBreak() const {
+    return type == LoopControlType::Break;
+}
 
-void ContinueNode::accept(ASTVisitor& visitor) {
-    visitor.visit(*this);
+bool LoopControlNode::isContinue() const {
+    return type == LoopControlType::Continue;
 }
 
 StatementSequenceNode::StatementSequenceNode(std::vector<std::shared_ptr<ASTNode>> stmts)
@@ -215,6 +207,32 @@ void StatementSequenceNode::accept(ASTVisitor& visitor) {
 
 const std::vector<std::shared_ptr<ASTNode>>& StatementSequenceNode::getStatements() const {
     return statements;
+}
+
+ListNode::ListNode(std::vector<std::shared_ptr<ASTNode>> elems)
+    : elements(std::move(elems)) {}
+
+void ListNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+const std::vector<std::shared_ptr<ASTNode>>& ListNode::getElements() const {
+    return elements;
+}
+
+IndexNode::IndexNode(std::shared_ptr<ASTNode> obj, std::shared_ptr<ASTNode> idx)
+    : object(std::move(obj)), index(std::move(idx)) {}
+
+void IndexNode::accept(ASTVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+ASTNode* IndexNode::getObject() const {
+    return object.get();
+}
+
+ASTNode* IndexNode::getIndex() const {
+    return index.get();
 }
 
 } // namespace AST

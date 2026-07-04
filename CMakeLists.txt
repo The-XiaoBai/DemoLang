@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(DemoLang VERSION 1.0.0)
+project(DemoLang VERSION 0)
 
 enable_testing()
 
@@ -14,7 +14,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 include_directories(src/include)
 
 add_subdirectory(src ${CMAKE_BINARY_DIR}/src)
-
 
 option(BUILD_TESTS "Build the tests" ON)
 if(BUILD_TESTS)

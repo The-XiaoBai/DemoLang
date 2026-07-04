@@ -1,0 +1,94 @@
+/**
+ * @file src/interpreter/controlflow.cpp
+ * @brief Visitor implementation for control flow nodes.
+**/
+
+#include "interpreter.hpp"
+
+using namespace DemoLang::ValueTypes;
+using namespace DemoLang::AST;
+
+namespace DemoLang {
+namespace InterpreterSpace {
+
+static bool isTruthy(const std::shared_ptr<BaseType>& val) {
+    if (auto integer = dynamic_cast<Integer*>(val.get())) {
+        return std::any_cast<long long>(integer->getValue()) != 0;
+    } else if (auto flo = dynamic_cast<Float*>(val.get())) {
+        return std::any_cast<long double>(flo->getValue()) != 0.0;
+    } else if (auto str = dynamic_cast<String*>(val.get())) {
+        return !std::any_cast<std::string>(str->getValue()).empty();
+    } else if (auto list = dynamic_cast<List*>(val.get())) {
+        return !std::any_cast<std::vector<std::shared_ptr<BaseType>>>(list->getValue()).empty();
+    }
+    return true;
+}
+
+void Interpreter::visit(IfNode& node) {
+    for (size_t i = 0; i < node.getConditions().size(); ++i) {
+        node.getConditions()[i]->accept(*this);
+        if (dynamic_cast<Exception*>(result.get())) return;  // Propagate exception from condition evaluation
+        if (isTruthy(result)) {
+            node.getBodies()[i]->accept(*this);
+            return;
+        }
+    }
+    if (node.getElseBody()) {
+        node.getElseBody()->accept(*this);
+    } else {
+        result = std::make_shared<String>("");
+    }
+}
+
+void Interpreter::visit(WhileNode& node) {
+    while (true) {
+        node.getCondition()->accept(*this);
+        if (dynamic_cast<Exception*>(result.get())) return;  // Propagate exception from condition evaluation
+        if (!isTruthy(result)) {
+            result = std::make_shared<String>("");
+            return;
+        }
+
+        node.getBody()->accept(*this);
+
+        if (auto exc = dynamic_cast<Exception*>(result.get())) {
+            std::string msg = std::any_cast<std::string>(exc->getValue());
+            if (msg == "__break__") {
+                result = std::make_shared<String>("");
+                return;
+            } else if (msg == "__continue__") {
+                result = std::make_shared<String>("");
+                continue;
+            }
+            return;  // Propagate any other runtime exception immediately
+        }
+    }
+}
+
+void Interpreter::visit(LoopControlNode& node) {
+    result = std::make_shared<Exception>(node.isBreak() ? "__break__" : "__continue__");
+}
+
+void Interpreter::visit(StatementSequenceNode& node) {
+    std::shared_ptr<BaseType> lastResult = std::make_shared<String>("");
+
+    for (const auto& stmt : node.getStatements()) {
+        stmt->accept(*this);
+        lastResult = result;
+
+        if (auto exc = dynamic_cast<Exception*>(lastResult.get())) {
+            std::string msg = std::any_cast<std::string>(exc->getValue());
+            if (msg == "__break__" || msg == "__continue__") {
+                result = lastResult;
+                return;
+            }
+            result = lastResult;
+            return;
+        }
+    }
+
+    result = lastResult;
+}
+
+} // namespace InterpreterSpace
+} // namespace DemoLang

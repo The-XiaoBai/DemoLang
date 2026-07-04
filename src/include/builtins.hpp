@@ -9,10 +9,8 @@
 
 #include <any>
 #include <iostream>
-#include <unordered_map>
-#include <functional>
 #include <memory>
-
+#include <vector>
 
 namespace DemoLang {
 
@@ -22,67 +20,69 @@ namespace ValueTypes {
  * @brief Base class for all value types.
 **/
 class BaseType {
-private:
+protected:
     std::string name;
     std::any value;
 
 public:
-    BaseType();
+    BaseType() = default;
+    explicit BaseType(std::string n) : name(std::move(n)) {}
+    virtual ~BaseType() = default;
+
     virtual bool operator==(const BaseType& other) const;
-    virtual bool operator!=(const BaseType& other) const;
-    virtual std::string getName() const = 0;
+    bool operator!=(const BaseType& other) const;
+
+    std::string getName() const { return name; }
     virtual std::any getValue() const = 0;
+    virtual std::string toString() const = 0;
     virtual std::shared_ptr<BaseType> clone() const = 0;
 };
-
 
 /**
  * @brief Integer value type.
 **/
 class Integer : public BaseType {
 private:
-    std::string name;
     long long value;
 
 public:
     Integer();
     explicit Integer(long long val);
-    std::string getName() const override;
+    bool operator==(const BaseType& other) const override;
     std::any getValue() const override;
+    std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
-
 
 /**
  * @brief Float value type.
 **/
 class Float : public BaseType {
 private:
-    std::string name;
     long double value;
 
 public:
     Float();
     explicit Float(long double val);
-    std::string getName() const override;
+    bool operator==(const BaseType& other) const override;
     std::any getValue() const override;
+    std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
-
 
 /**
  * @brief String value type.
 **/
 class String : public BaseType {
 private:
-    std::string name;
     std::string value;
 
 public:
     String();
     explicit String(const std::string& val);
-    std::string getName() const override;
+    bool operator==(const BaseType& other) const override;
     std::any getValue() const override;
+    std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
 
@@ -91,22 +91,40 @@ public:
 **/
 class Exception : public BaseType {
 private:
-    std::string name;
     std::string value;
 
 public:
     Exception();
     explicit Exception(const std::string& val);
-    std::string getName() const override;
+    bool operator==(const BaseType& other) const override;
     std::any getValue() const override;
+    std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
 
 /**
- * @brief Get built-in functions map.
- * @return Map of built-in function names to their implementations.
+ * @brief List value type.
 **/
-std::unordered_map<std::string, std::function<std::shared_ptr<BaseType>(const std::vector<std::shared_ptr<BaseType>>)>> getBuiltins();
+class List : public BaseType {
+private:
+    std::vector<std::shared_ptr<BaseType>> value;
+
+public:
+    List();
+    explicit List(const std::vector<std::shared_ptr<BaseType>>& val);
+    bool operator==(const BaseType& other) const override;
+    std::any getValue() const override;
+    std::string toString() const override;
+    std::shared_ptr<BaseType> clone() const override;
+};
+
+/**
+ * @brief Call a built-in function.
+ * @param name The name of the built-in function.
+ * @param args The arguments to pass to the function.
+ * @return The result of the function call.
+**/
+std::shared_ptr<BaseType> getBuiltin(const std::string& name, const std::vector<std::shared_ptr<BaseType>>& args);
 
 } // namespace ValueTypes
 
