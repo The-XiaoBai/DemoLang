@@ -12,4 +12,4 @@ All notable changes to DemoLang are documented here.
 - **Control flow**: If (`?`/`??`/`:`), While (`^`), Continue (`#`), Break (`##`)
 - **Built-in functions**: `print()`, `exit()`, `query()`
 - **Error handling**: three-phase detection (Lexer → Parser → Runtime)
-- **Tests**: suite for Lexer, Parser, Interpreter, and Utils
+- **Tests**: operators, variables, literals, control flow, functions, lists, errors, integration, and utils

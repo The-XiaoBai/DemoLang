@@ -3,11 +3,10 @@
  * @brief Handler for numeric literals (int / float).
 **/
 
-#include "lexer.hpp"
 #include <cctype>
+#include "lexer.hpp"
 
 using namespace DemoLang::Tokens;
-
 
 namespace DemoLang {
 

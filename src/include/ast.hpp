@@ -8,10 +8,9 @@
 #define DEMOLANG_AST
 
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 #include "utils.hpp"
-
 
 namespace DemoLang {
 
@@ -41,7 +40,6 @@ public:
     virtual void visit(class IndexNode& node) = 0;
 };
 
-
 /**
  * @brief Base class for all AST nodes.
 **/
@@ -49,7 +47,6 @@ struct ASTNode : public std::enable_shared_from_this<ASTNode> {
     virtual ~ASTNode() = default;
     virtual void accept(ASTVisitor& visitor) = 0;
 };
-
 
 /**
  * @brief Node representing unary operations.
@@ -65,7 +62,6 @@ public:
     const std::string& getOp() const;
     ASTNode* getOperand() const;
 };
-
 
 /**
  * @brief Node representing binary operations.
@@ -84,7 +80,6 @@ public:
     ASTNode* getRight() const;
 };
 
-
 /**
  * @brief Node representing identifiers.
 **/
@@ -97,7 +92,6 @@ public:
     void accept(ASTVisitor& visitor) override;
     const std::string& getName() const;
 };
-
 
 /**
  * @brief Node representing integer literals.
@@ -112,7 +106,6 @@ public:
     long long getValue() const;
 };
 
-
 /**
  * @brief Node representing floating-point literals.
 **/
@@ -125,7 +118,6 @@ public:
     void accept(ASTVisitor& visitor) override;
     long double getValue() const;
 };
-
 
 /**
  * @brief Node representing string literals.
@@ -140,7 +132,6 @@ public:
     const std::string& getValue() const;
 };
 
-
 /**
  * @brief Node representing error conditions.
 **/
@@ -153,7 +144,6 @@ public:
     void accept(ASTVisitor& visitor) override;
     const std::string& getMessage() const;
 };
-
 
 /**
  * @brief Node representing function calls.
@@ -267,7 +257,6 @@ public:
     const std::vector<std::shared_ptr<ASTNode>>& getStatements() const;
 };
 
-
 /**
  * @brief Node representing list literals.
  * Syntax: [1, 2, 3]
@@ -281,7 +270,6 @@ public:
     void accept(ASTVisitor& visitor) override;
     const std::vector<std::shared_ptr<ASTNode>>& getElements() const;
 };
-
 
 /**
  * @brief Node representing index access.

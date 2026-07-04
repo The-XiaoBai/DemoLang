@@ -12,7 +12,6 @@
 #include <memory>
 #include <vector>
 
-
 namespace DemoLang {
 
 namespace ValueTypes {
@@ -39,7 +38,6 @@ public:
     virtual std::shared_ptr<BaseType> clone() const = 0;
 };
 
-
 /**
  * @brief Integer value type.
 **/
@@ -56,7 +54,6 @@ public:
     std::shared_ptr<BaseType> clone() const override;
 };
 
-
 /**
  * @brief Float value type.
 **/
@@ -72,7 +69,6 @@ public:
     std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
-
 
 /**
  * @brief String value type.
@@ -106,7 +102,6 @@ public:
     std::shared_ptr<BaseType> clone() const override;
 };
 
-
 /**
  * @brief List value type.
 **/
@@ -122,7 +117,6 @@ public:
     std::string toString() const override;
     std::shared_ptr<BaseType> clone() const override;
 };
-
 
 /**
  * @brief Call a built-in function.

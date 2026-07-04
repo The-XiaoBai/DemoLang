@@ -48,19 +48,25 @@ std::shared_ptr<ASTNode> FunctionCallParser::handle() {
     }
 
     // Parse first argument
-    auto [firstArg, firstErr] = parser.parseOneArg();
-    if (firstErr) return firstErr;
-    args.push_back(firstArg);
+    args.push_back(parser.parseExpression());
+
+    // Propagate lexer error immediately
+    if (parser.current().type == TokenType::ERROR)
+        return std::make_shared<ErrorNode>(parser.current().value);
 
     // Parse remaining arguments separated by ','
     while (parser.current().type == TokenType::OPERATOR && parser.current().value == ",") {
         parser.advance();  // Consume ','
         if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")")
             return std::make_shared<ErrorNode>("Unexpected ',' before ')'");
-        auto [arg, err] = parser.parseOneArg();
-        if (err) return err;
-        args.push_back(arg);
+        args.push_back(parser.parseExpression());
+        if (parser.current().type == TokenType::ERROR)
+            return std::make_shared<ErrorNode>(parser.current().value);
     }
+
+    // Propagate lexer error before checking for ')'
+    if (parser.current().type == TokenType::ERROR)
+        return std::make_shared<ErrorNode>(parser.current().value);
 
     // Expect closing parenthesis
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")

@@ -73,7 +73,11 @@ j = 1
 k = 0
 ^(k < 10) {
     k = k + 1
-    ?(k % 2 == 0) { # }  # Skip even numbers
+    ?(k == 2) { # }  # Skip 2
+    ?(k == 4) { # }  # Skip 4
+    ?(k == 6) { # }  # Skip 6
+    ?(k == 8) { # }  # Skip 8
+    ?(k == 10) { # }  # Skip 10
     print(k)
 }
 # Output: 1 3 5 7 9

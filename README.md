@@ -40,38 +40,43 @@ DemoLang/
 │   │   ├── interpreter.hpp   # Interpreter interface
 │   │   └── utils.hpp         # Utility helpers
 │   ├── lexer/                # Lexer implementation
-│   │   ├── lexer.cpp
-│   │   ├── eof.cpp
-│   │   ├── identifier.cpp
-│   │   ├── numbers.cpp
-│   │   ├── operators.cpp
-│   │   ├── string.cpp
-│   │   ├── unknown.cpp
-│   │   └── whitespaces.cpp
+│   │   ├── lexer.cpp         # Tokenizer core loop
+│   │   ├── eof.cpp           # End-of-file token
+│   │   ├── identifier.cpp    # Identifiers & keywords
+│   │   ├── numbers.cpp       # Integer & float literals
+│   │   ├── operators.cpp     # Operator & delimiter tokens
+│   │   ├── string.cpp        # String literal lexing
+│   │   ├── unknown.cpp       # Unknown character → error token
+│   │   └── whitespaces.cpp   # Whitespace skipping (no token)
 │   ├── parser/               # Parser implementation
-│   │   ├── ast.cpp
-│   │   ├── parser.cpp
-│   │   ├── operators.cpp
-│   │   ├── literals.cpp
-│   │   ├── lists.cpp
-│   │   ├── parenthesized.cpp
-│   │   ├── functions.cpp
-│   │   ├── identifier.cpp
-│   │   └── statements.cpp
+│   │   ├── ast.cpp           # AST node constructors & toGraph()
+│   │   ├── parser.cpp        # Parser core: expression chain, precedence
+│   │   ├── functions.cpp     # FunctionCallParser: named function call
+│   │   ├── identifier.cpp    # IdentifierParser: variable lookup
+│   │   ├── lists.cpp         # ListParser: list literal & index access
+│   │   ├── literals.cpp      # LiteralFallbackParser: int, float, string, bool
+│   │   ├── operators.cpp     # UnaryParser, BinaryParser, PostfixParser
+│   │   ├── parenthesized.cpp # ParenthesizedParser: grouping, lambda, call
+│   │   └── statements.cpp    # IfParser, WhileParser, LoopControlParser
 │   └── interpreter/          # Interpreter implementation
-│       ├── builtins.cpp
-│       ├── interpreter.cpp
-│       ├── operators.cpp
-│       ├── literals.cpp
-│       ├── variables.cpp
-│       └── controlflow.cpp
+│       ├── builtins.cpp      # Built-in functions: print, exit, query
+│       ├── interpreter.cpp   # Eval loop: walk AST, manage scope stack
+│       ├── controlflow.cpp   # If/else, while, break, continue
+│       ├── literals.cpp      # Literal evaluation
+│       ├── operators.cpp     # Arithmetic, comparison, logical evaluation
+│       └── variables.cpp     # Variable assignment, lookup, scope
 └── tests/                    # Test suite
     ├── CMakeLists.txt        # Test build config
     ├── test_framework.hpp    # Lightweight test framework
-    ├── test_lexer.cpp        # Lexer tests
-    ├── test_parser.cpp       # Parser tests
-    ├── test_interpreter.cpp  # Interpreter tests
-    └── test_utils.cpp        # Utility tests
+    ├── test_operators.cpp    # Arithmetic, comparison, logical, unary operators
+    ├── test_variables.cpp    # Variable assignment, lookup, scope
+    ├── test_literals.cpp     # Integer, float, string, boolean literals
+    ├── test_controlflow.cpp  # If, while, break, continue
+    ├── test_functions.cpp    # Function definition, call, lambda, built-in functions
+    ├── test_lists.cpp        # List creation, index, nested lists
+    ├── test_errors.cpp       # Lexer, parser, runtime error handling
+    ├── test_integration.cpp  # Cross-feature integration tests
+    └── test_utils.cpp        # Utility classes unit tests
 ```
 
 ## Build

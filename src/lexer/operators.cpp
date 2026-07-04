@@ -3,11 +3,10 @@
  * @brief Handler for operator tokens.
 **/
 
-#include "lexer.hpp"
 #include <algorithm>
+#include "lexer.hpp"
 
 using namespace DemoLang::Tokens;
-
 
 namespace DemoLang {
 

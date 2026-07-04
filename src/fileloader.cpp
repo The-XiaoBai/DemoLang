@@ -3,11 +3,11 @@
  * @brief Load DemoLang code from a file and execute. Usage: <executable> <filename>
 **/
 
+#include <fstream>
+#include <iostream>
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "interpreter.hpp"
-#include <iostream>
-#include <fstream>
 
 using namespace DemoLang;
 using namespace DemoLang::Tokens;

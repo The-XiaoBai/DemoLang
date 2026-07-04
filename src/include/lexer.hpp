@@ -7,16 +7,14 @@
 #ifndef DEMOLANG_LEXER
 #define DEMOLANG_LEXER
 
+#include <memory>
+#include <vector>
 #include "tokens.hpp"
 #include "utils.hpp"
-#include <vector>
-#include <memory>
-
 
 namespace DemoLang {
 
 namespace LexerSpace {
-
 
 /**
  * @brief Lexer class for tokenizing input.
@@ -41,7 +39,6 @@ public:
     std::vector<Tokens::Token> tokenize(const std::string &input);
 };
 
-
 /**
  * @brief Base handler for token recognition.
 **/
@@ -54,7 +51,6 @@ public:
     virtual std::shared_ptr<Tokens::Token> handle() = 0;
 };
 
-
 /**
  * @brief Handler for end of file tokens.
 **/
@@ -63,7 +59,6 @@ public:
     EOFHandler(Lexer& lexer);
     std::shared_ptr<Tokens::Token> handle();
 };
-
 
 /**
  * @brief Handler for whitespace tokens.
@@ -74,7 +69,6 @@ public:
     std::shared_ptr<Tokens::Token> handle();
 };
 
-
 /**
  * @brief Handler for operator tokens.
 **/
@@ -83,7 +77,6 @@ public:
     OperatorHandler(Lexer& lexer);
     std::shared_ptr<Tokens::Token> handle();
 };
-
 
 /**
  * @brief Handler for identifier tokens.
@@ -94,7 +87,6 @@ public:
     std::shared_ptr<Tokens::Token> handle();
 };
 
-
 /**
  * @brief Handler for number tokens.
 **/
@@ -104,7 +96,6 @@ public:
     std::shared_ptr<Tokens::Token> handle();
 };
 
-
 /**
  * @brief Handler for string tokens.
 **/
@@ -113,7 +104,6 @@ public:
     StringHandler(Lexer& lexer);
     std::shared_ptr<Tokens::Token> handle();
 };
-
 
 /**
  * @brief Handler for unknown/error tokens.

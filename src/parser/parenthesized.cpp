@@ -13,35 +13,81 @@ namespace DemoLang {
 namespace ParserSpace {
 
 std::pair<std::shared_ptr<ASTNode>, bool> parseFunctionBody(Parser& parser) {
-    std::shared_ptr<ASTNode> body;
+    std::vector<std::shared_ptr<ASTNode>> statements;
     bool hasReturn = false;
-    if (parser.current().type == TokenType::OPERATOR && parser.current().value == "@") {
-        parser.advance();
-        hasReturn = true;
+    
+    // Parse statements until we encounter '@' or '}'
+    while (true) {
+        // Check for end of function body
         if (parser.current().type == TokenType::OPERATOR && parser.current().value == "}") {
-            body = std::make_shared<ErrorNode>("Expected expression after '@' return marker");
-        } else {
-            body = parser.parseExpression();
+            break;
         }
-    } else if (parser.current().type == TokenType::OPERATOR && parser.current().value == "}") {
-        body = std::make_shared<StringNode>("");
-    } else {
-        body = parser.parseExpression();
+        
+        // Check for return marker '@'
+        if (parser.current().type == TokenType::OPERATOR && parser.current().value == "@") {
+            parser.advance();  // Consume '@'
+            hasReturn = true;
+            
+            // Parse the return expression
+            if (parser.current().type == TokenType::OPERATOR && parser.current().value == "}") {
+                return {std::make_shared<ErrorNode>("Expected expression after '@' return marker"), false};
+            }
+            
+            auto returnExpr = parser.parseExpression();
+            statements.push_back(returnExpr);
+            break;  // '@' must be the last thing in the function body
+        }
+        
+        // Parse a single statement (not a sequence)
+        auto stmt = parser.parseExpression(false);
+        
+        // Check for errors
+        if (dynamic_cast<ErrorNode*>(stmt.get())) {
+            return {stmt, false};
+        }
+        
+        statements.push_back(stmt);
+        
+        // Check if there are more statements
+        if (parser.current().type == TokenType::OPERATOR && parser.current().value == ";") {
+            parser.advance();  // Consume ';'
+            // Continue to parse next statement
+        } else {
+            // No more statements
+            break;
+        }
     }
-    return {body, hasReturn};
+    
+    // Build the body node based on the number of statements
+    if (statements.empty()) {
+        // Empty function body
+        return {std::make_shared<StringNode>(""), hasReturn};
+    } else if (statements.size() == 1 && !hasReturn) {
+        // Single statement, no explicit return
+        return {statements[0], hasReturn};
+    } else {
+        // Multiple statements or explicit return
+        return {std::make_shared<StatementSequenceNode>(statements), hasReturn};
+    }
 }
 
 static std::pair<std::shared_ptr<ASTNode>, bool> parseLambda(Parser& parser) {
+    if (parser.current().type == TokenType::ERROR)
+        return {std::make_shared<ErrorNode>(parser.current().value), false};
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
         return {std::make_shared<ErrorNode>("Expected ')' after parameters"), false};
     parser.advance();
 
+    if (parser.current().type == TokenType::ERROR)
+        return {std::make_shared<ErrorNode>(parser.current().value), false};
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != "{")
         return {std::make_shared<ErrorNode>("Expected '{' for lambda body"), false};
     parser.advance();
 
     auto [body, hasReturn] = parseFunctionBody(parser);
 
+    if (parser.current().type == TokenType::ERROR)
+        return {std::make_shared<ErrorNode>(parser.current().value), false};
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != "}")
         return {std::make_shared<ErrorNode>("Expected '}' for lambda body"), false};
     parser.advance();
@@ -73,6 +119,8 @@ std::shared_ptr<ASTNode> ParenthesizedParser::handle() {
                     parser.advance();
                     args.push_back(parser.parseExpression());
                 }
+                if (parser.current().type == TokenType::ERROR)
+                    return std::make_shared<ErrorNode>(parser.current().value);
                 if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
                     return std::make_shared<ErrorNode>("Expected ')' in lambda call");
                 parser.advance();
@@ -118,6 +166,8 @@ std::shared_ptr<ASTNode> ParenthesizedParser::handle() {
                         parser.advance();
                         args.push_back(parser.parseExpression());
                     }
+                    if (parser.current().type == TokenType::ERROR)
+                        return std::make_shared<ErrorNode>(parser.current().value);
                     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
                         return std::make_shared<ErrorNode>("Expected ')' in lambda call");
                     parser.advance();
@@ -130,13 +180,17 @@ std::shared_ptr<ASTNode> ParenthesizedParser::handle() {
         parser.restorePosition(afterParen);
     }
 
-    // Check for end of input
+    // Check for end of input or lexer error
     if (parser.current().type == TokenType::END)
         return std::make_shared<ErrorNode>("Unexpected end of input, expected closing parenthesis");
+    if (parser.current().type == TokenType::ERROR)
+        return std::make_shared<ErrorNode>(parser.current().value);
 
     // Parse as regular expression using parseExpression to preserve outer operators
     auto expr = parser.parseExpression();
 
+    if (parser.current().type == TokenType::ERROR)
+        return std::make_shared<ErrorNode>(parser.current().value);
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
         return std::make_shared<ErrorNode>("Expected closing parenthesis");
     parser.advance();
@@ -153,6 +207,8 @@ std::shared_ptr<ASTNode> ParenthesizedParser::handle() {
                     parser.advance();
                     args.push_back(parser.parseExpression());
                 }
+                if (parser.current().type == TokenType::ERROR)
+                    return std::make_shared<ErrorNode>(parser.current().value);
                 if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
                     return std::make_shared<ErrorNode>("Expected ')' in lambda call");
                 parser.advance();

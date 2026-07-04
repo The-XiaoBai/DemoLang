@@ -7,17 +7,17 @@ The codebase uses a hierarchical namespace structure under the top-level `DemoLa
 ```
 DemoLang
 ├── Utils                       // Utility classes and design pattern implementations
-│   ├── Singleton             // Template class for Singleton pattern
 │   ├── Handler              // Template class for Chain of Responsibility pattern
 │   ├── Chain                // Template class for chaining handlers
-│   ├── Registry             // Template class for operator/function registry
-│   └── FlyweightFactory    // Template class for Flyweight pattern
+│   ├── Singleton             // Template class for Singleton pattern
+│   ├── FlyweightFactory      // Template class for Flyweight pattern
+│   └── Registry              // Template class for operator/function registry
 │
 ├── Tokens                      // Token types and token-related utilities
 │   ├── TokenType               // Enum class for token types (END, OPERATOR, IDENTIFIER, etc.)
-│   ├── Token                   // Token struct (type + value)
 │   ├── whitespaces            // Inline constant: supported whitespace characters
-│   └── operators             // Inline constant: supported operators
+│   ├── operators              // Inline constant: supported operators
+│   └── Token                   // Token struct (type + value)
 │
 ├── LexerSpace                 // Lexer module (tokenization)
 │   ├── Lexer                // Main lexer class (Singleton)
@@ -31,6 +31,7 @@ DemoLang
 │   └── UnknownHandler      // Handler for unknown characters
 │
 ├── AST                         // Abstract Syntax Tree node definitions
+│   ├── ASTVisitor            // Visitor interface for AST traversal
 │   ├── ASTNode               // Base class for all AST nodes
 │   ├── UnaryOpNode           // Unary operations (!, -)
 │   ├── BinaryOpNode          // Binary operations (+, -, *, /, =, etc.)
@@ -38,24 +39,26 @@ DemoLang
 │   ├── IntNode               // Integer literal
 │   ├── FloatNode             // Float literal
 │   ├── StringNode            // String literal
-│   ├── ListNode              // List literal
-│   ├── IndexNode            // Index access (list[index])
 │   ├── ErrorNode             // Error node for parse errors
-│   ├── FunctionDefNode       // Function definition
 │   ├── FunctionCallNode      // Function call
+│   ├── FunctionDefNode       // Function definition
 │   ├── IfNode                // If/else-if/else statement
 │   ├── WhileNode             // While loop
+│   ├── LoopControlType       // Enum for Break / Continue
 │   ├── LoopControlNode       // Break/continue statement
-│   └── StatementSequenceNode // Sequence of statements
+│   ├── StatementSequenceNode // Sequence of statements
+│   ├── ListNode              // List literal
+│   └── IndexNode             // Index access (list[index])
 │
 ├── ParserSpace                // Parser module (AST generation)
 │   ├── Parser               // Main parser class (Singleton)
 │   ├── BaseParser           // Base class for expression parsers
 │   ├── UnaryParser          // Parser for unary operations
 │   ├── BinaryParser         // Parser for binary operations
+│   ├── PostfixParser        // Parser for postfix index access (expr[index])
 │   ├── ListParser           // Parser for list literals
 │   ├── FunctionCallParser   // Parser for function calls
-│   ├── IdentifierParser     // Parser for identifiers and index access
+│   ├── IdentifierParser     // Parser for identifiers
 │   ├── IfParser             // Parser for if statements
 │   ├── WhileParser          // Parser for while loops
 │   ├── LoopControlParser    // Parser for break/continue
@@ -67,14 +70,13 @@ DemoLang
 │   ├── Integer              // Integer type (long long)
 │   ├── Float                // Float type (long double)
 │   ├── String               // String type (std::string)
-│   ├── List                 // List type (vector of BaseType)
 │   ├── Exception            // Exception type for error handling
-│   └── getBuiltin          // Function to get built-in function implementations
+│   ├── List                 // List type (vector of BaseType)
+│   └── getBuiltin           // Function to get built-in function implementations
 │
 └── InterpreterSpace           // Interpreter module (execution)
     ├── Environment           // Variable and function scope management
-    ├── Interpreter          // Main interpreter class (Singleton, ASTVisitor)
-    └── ASTVisitor          // Visitor interface for AST traversal
+    └── Interpreter          // Main interpreter class (Singleton, ASTVisitor)
 ```
 
 ## Design Patterns

@@ -9,7 +9,6 @@ using namespace DemoLang;
 using namespace DemoLang::Utils;
 using namespace DemoLang::Tokens;
 
-
 namespace DemoLang {
 
 namespace LexerSpace {
@@ -41,7 +40,6 @@ Token Lexer::nextToken() {
     auto result = handlerChain.execute();
     return *result;
 }
-
 
 std::vector<Token> Lexer::tokenize(const std::string &input) {
     // Initialize lexer state

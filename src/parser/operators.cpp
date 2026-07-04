@@ -24,11 +24,13 @@ std::shared_ptr<ASTNode> UnaryParser::handle() {
     return nextHandler->handle();  // Not a unary operator, try next handler
 }
 
-
 std::shared_ptr<ASTNode> BinaryParser::handle() {
     // Parse left operand first
     auto left = nextHandler->handle();
     if (!left) return std::make_shared<ErrorNode>("Left part can not be parsed");
+
+    // Propagate error immediately - don't try to parse operators on an error
+    if (dynamic_cast<ErrorNode*>(left.get())) return left;
 
     // Try to parse binary operators in a loop (for operator precedence)
     while (true) {
@@ -68,6 +70,8 @@ std::shared_ptr<ASTNode> BinaryParser::handle() {
                     if (parser.current().type == TokenType::OPERATOR && parser.current().value == ")") {
                         parser.advance();
                     } else {
+                        if (parser.current().type == TokenType::ERROR)
+                            return std::make_shared<ErrorNode>(parser.current().value);
                         return std::make_shared<ErrorNode>("Expected ')' in function definition");
                     }
                 }
@@ -81,9 +85,13 @@ std::shared_ptr<ASTNode> BinaryParser::handle() {
                         parser.advance();
                         return std::make_shared<FunctionDefNode>(funcName, params, paramDefaults, body, hasReturn);
                     } else {
+                        if (parser.current().type == TokenType::ERROR)
+                            return std::make_shared<ErrorNode>(parser.current().value);
                         return std::make_shared<ErrorNode>("Expected '}' in function definition");
                     }
                 } else {
+                    if (parser.current().type == TokenType::ERROR)
+                        return std::make_shared<ErrorNode>(parser.current().value);
                     return std::make_shared<ErrorNode>("Expected '{' in function definition");
                 }
             }
@@ -103,6 +111,28 @@ std::shared_ptr<ASTNode> BinaryParser::handle() {
     }
 
     return left;
+}
+
+PostfixParser::PostfixParser(Parser& p) : BaseParser(p) {}
+
+std::shared_ptr<ASTNode> PostfixParser::handle() {
+    // Parse the base expression via the rest of the chain
+    auto expr = nextHandler->handle();
+    if (!expr) return expr;
+
+    // Handle postfix operations: expression[index]
+    while (parser.current().type == TokenType::OPERATOR && parser.current().value == "[") {
+        parser.advance();  // Consume '['
+        auto indexExpr = parser.parseExpression();
+        if (parser.current().type == TokenType::ERROR)
+            return std::make_shared<ErrorNode>(parser.current().value);
+        if (parser.current().type != TokenType::OPERATOR || parser.current().value != "]")
+            return std::make_shared<ErrorNode>("Expected ']' in index access");
+        parser.advance();  // Consume ']'
+        expr = std::make_shared<IndexNode>(expr, indexExpr);
+    }
+
+    return expr;
 }
 
 } // namespace ParserSpace

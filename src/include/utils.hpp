@@ -7,13 +7,12 @@
 #ifndef DEMOLANG_UTILS
 #define DEMOLANG_UTILS
 
-#include <memory>
-#include <unordered_map>
-#include <vector>
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <string>
-
+#include <unordered_map>
+#include <vector>
 
 namespace DemoLang {
 
@@ -32,7 +31,7 @@ public:
     virtual ~Handler() = default;
     void setNext(std::shared_ptr<Handler<T>> next) {
         nextHandler = next;
-    };
+    }
     virtual std::shared_ptr<T> handle() = 0;
 };
 
@@ -54,12 +53,11 @@ public:
             tail->setNext(handler);
             tail = handler;
         }
-    };
+    }
     std::shared_ptr<T> execute() {
         return head ? head->handle() : nullptr;
     }
 };
-
 
 /**
  * @brief Singleton class template
@@ -83,7 +81,6 @@ public:
         return instance;
     }
 };
-
 
 /**
  * @brief Flyweight pattern implementation for managing shared objects
@@ -114,7 +111,6 @@ public:
     void clear() { pool.clear(); }
     size_t size() const { return pool.size(); }
 };
-
 
 /**
  * @brief Registry pattern: key → function dispatcher (singleton)

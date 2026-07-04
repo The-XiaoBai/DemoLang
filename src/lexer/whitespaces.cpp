@@ -3,11 +3,10 @@
  * @brief Handler for whitespace skipping.
 **/
 
-#include "lexer.hpp"
 #include <algorithm>
+#include "lexer.hpp"
 
 using namespace DemoLang::Tokens;
-
 
 namespace DemoLang {
 

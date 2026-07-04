@@ -160,7 +160,6 @@ void Interpreter::visit(UnaryOpNode& node) {
     }
 }
 
-
 void Interpreter::visit(BinaryOpNode& node) {
     // Handle assignment operator first — left side resolution is not needed
     // since the handler uses the AST IdNode directly (variable may not exist yet)
@@ -175,13 +174,13 @@ void Interpreter::visit(BinaryOpNode& node) {
             // Check if right side is an anonymous function (lambda)
             if (auto* funcDef = dynamic_cast<FunctionDefNode*>(node.getRight())) {
                 if (funcDef->isAnonymous()) {
-                    env.setFunction(name, std::make_shared<FunctionDefNode>(*funcDef));
+                    env->setFunction(name, std::make_shared<FunctionDefNode>(*funcDef));
                     result = std::make_shared<String>("[function]");
                 } else {
                     result = std::make_shared<Exception>("Cannot assign named function");
                 }
             } else {
-                env.set(name, *right);
+                env->set(name, *right);
                 result = right;
             }
         } else {

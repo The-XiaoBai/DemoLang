@@ -3,11 +3,10 @@
  * @brief Program entry point.
 **/
 
-
+#include <iostream>
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "interpreter.hpp"
-#include <iostream>
 
 using namespace DemoLang;
 using namespace DemoLang::Tokens;
@@ -16,7 +15,6 @@ using namespace DemoLang::AST;
 using namespace DemoLang::ParserSpace;
 using namespace DemoLang::ValueTypes;
 using namespace DemoLang::InterpreterSpace;
-
 
 /**
  * @brief REPL for DemoLang.
@@ -54,7 +52,6 @@ static void repl() {
         }
     }
 }
-
 
 /**
  * @brief Main function.

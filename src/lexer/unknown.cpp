@@ -7,7 +7,6 @@
 
 using namespace DemoLang::Tokens;
 
-
 namespace DemoLang {
 
 namespace LexerSpace {

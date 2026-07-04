@@ -29,6 +29,10 @@ std::shared_ptr<ASTNode> IfParser::handle() {
         return std::make_shared<ErrorNode>("Expected '(' after '?'");
     parser.advance();  // Consume '('
     conditions.push_back(parser.parseExpression());
+    if (dynamic_cast<ErrorNode*>(conditions.back().get()))
+        return conditions.back();
+    if (parser.current().type == TokenType::ERROR)
+        return std::make_shared<ErrorNode>(parser.current().value);
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
         return std::make_shared<ErrorNode>("Expected ')' in if condition");
     parser.advance();  // Consume ')'
@@ -38,6 +42,10 @@ std::shared_ptr<ASTNode> IfParser::handle() {
         return std::make_shared<ErrorNode>("Expected '{' for if body");
     parser.advance();  // Consume '{'
     bodies.push_back(parser.parseExpression());
+    if (dynamic_cast<ErrorNode*>(bodies.back().get()))
+        return bodies.back();
+    if (parser.current().type == TokenType::ERROR)
+        return std::make_shared<ErrorNode>(parser.current().value);
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != "}")
         return std::make_shared<ErrorNode>("Expected '}' for if body");
     parser.advance();  // Consume '}'
@@ -50,6 +58,10 @@ std::shared_ptr<ASTNode> IfParser::handle() {
             return std::make_shared<ErrorNode>("Expected '(' after '??'");
         parser.advance();  // Consume '('
         conditions.push_back(parser.parseExpression());
+        if (dynamic_cast<ErrorNode*>(conditions.back().get()))
+            return conditions.back();
+        if (parser.current().type == TokenType::ERROR)
+            return std::make_shared<ErrorNode>(parser.current().value);
         if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
             return std::make_shared<ErrorNode>("Expected ')' in else-if condition");
         parser.advance();  // Consume ')'
@@ -58,6 +70,10 @@ std::shared_ptr<ASTNode> IfParser::handle() {
             return std::make_shared<ErrorNode>("Expected '{' for else-if body");
         parser.advance();  // Consume '{'
         bodies.push_back(parser.parseExpression());
+        if (dynamic_cast<ErrorNode*>(bodies.back().get()))
+            return bodies.back();
+        if (parser.current().type == TokenType::ERROR)
+            return std::make_shared<ErrorNode>(parser.current().value);
         if (parser.current().type != TokenType::OPERATOR || parser.current().value != "}")
             return std::make_shared<ErrorNode>("Expected '}' for else-if body");
         parser.advance();  // Consume '}'
@@ -72,6 +88,10 @@ std::shared_ptr<ASTNode> IfParser::handle() {
             return std::make_shared<ErrorNode>("Expected '{' for else body");
         parser.advance();  // Consume '{'
         elseBody = parser.parseExpression();
+        if (dynamic_cast<ErrorNode*>(elseBody.get()))
+            return elseBody;
+        if (parser.current().type == TokenType::ERROR)
+            return std::make_shared<ErrorNode>(parser.current().value);
         if (parser.current().type != TokenType::OPERATOR || parser.current().value != "}")
             return std::make_shared<ErrorNode>("Expected '}' for else body");
         parser.advance();  // Consume '}'
@@ -94,6 +114,10 @@ std::shared_ptr<ASTNode> WhileParser::handle() {
         return std::make_shared<ErrorNode>("Expected '(' after '^'");
     parser.advance();  // Consume '('
     auto condition = parser.parseExpression();
+    if (dynamic_cast<ErrorNode*>(condition.get()))
+        return condition;
+    if (parser.current().type == TokenType::ERROR)
+        return std::make_shared<ErrorNode>(parser.current().value);
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != ")")
         return std::make_shared<ErrorNode>("Expected ')' in while condition");
     parser.advance();  // Consume ')'
@@ -103,6 +127,10 @@ std::shared_ptr<ASTNode> WhileParser::handle() {
         return std::make_shared<ErrorNode>("Expected '{' for while body");
     parser.advance();  // Consume '{'
     auto body = parser.parseExpression();
+    if (dynamic_cast<ErrorNode*>(body.get()))
+        return body;
+    if (parser.current().type == TokenType::ERROR)
+        return std::make_shared<ErrorNode>(parser.current().value);
     if (parser.current().type != TokenType::OPERATOR || parser.current().value != "}")
         return std::make_shared<ErrorNode>("Expected '}' for while body");
     parser.advance();  // Consume '}'

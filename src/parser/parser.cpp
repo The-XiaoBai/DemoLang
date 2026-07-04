@@ -23,6 +23,7 @@ Parser::Parser() : current_pos(0) {
     exprChain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"+", "-"}));
     exprChain.addHandler(std::make_shared<BinaryParser>(*this, std::vector<std::string>{"*", "/"}));
     exprChain.addHandler(std::make_shared<UnaryParser>(*this, std::vector<std::string>{"!", "-"}));
+    exprChain.addHandler(std::make_shared<PostfixParser>(*this));
     exprChain.addHandler(std::make_shared<ListParser>(*this));
     exprChain.addHandler(std::make_shared<FunctionCallParser>(*this));
     exprChain.addHandler(std::make_shared<IdentifierParser>(*this));
@@ -70,11 +71,15 @@ std::shared_ptr<ASTNode> Parser::parse(const std::vector<Token> &tokens) {
     }
 }
 
-std::shared_ptr<ASTNode> Parser::parseExpression() {
-    std::vector<std::shared_ptr<ASTNode>> statements;
+std::shared_ptr<ASTNode> Parser::parseExpression(bool allowSequencing) {
+    // Propagate lexer errors immediately
+    if (current().type == TokenType::ERROR)
+        return std::make_shared<ErrorNode>(current().value);
 
-    // Parse first expression
     auto firstExpr = exprChain.execute();
+    if (!allowSequencing) return firstExpr;
+
+    std::vector<std::shared_ptr<ASTNode>> statements;
     statements.push_back(firstExpr);
 
     // Parse additional statements separated by ';'
@@ -104,28 +109,6 @@ Parser::parseOneParam() {
         defaultValue = exprChain.execute();
     }
     return {paramName, defaultValue, nullptr};
-}
-
-std::pair<std::shared_ptr<ASTNode>, std::shared_ptr<ASTNode>>
-Parser::parseOneArg() {
-    if (current().type == TokenType::IDENTIFIER) {
-        std::string idName = current().value;
-        advance();
-        if (current().type == TokenType::OPERATOR && current().value == "[") {
-            advance();
-            auto indexExpr = parseExpression();
-            if (current().type != TokenType::OPERATOR || current().value != "]")
-                return {nullptr, std::make_shared<ErrorNode>("Expected ']' in index access")};
-            advance();
-            return {std::make_shared<IndexNode>(std::make_shared<IdNode>(idName), indexExpr), nullptr};
-        }
-        if (current().type == TokenType::OPERATOR && current().value == "=") {
-            advance();
-            return {parseExpression(), nullptr};
-        }
-        return {std::make_shared<IdNode>(idName), nullptr};
-    }
-    return {parseExpression(), nullptr};
 }
 
 } // namespace ParserSpace

@@ -14,11 +14,11 @@ namespace DemoLang {
 namespace InterpreterSpace {
 
 void Interpreter::visit(IdNode& node) {
-    if (env.hasFunction(node.getName())) {
+    if (env->hasFunction(node.getName())) {
         result = std::make_shared<String>("[function]");
         return;
     }
-    result = env.has(node.getName()) ? env.get(node.getName())
+    result = env->has(node.getName()) ? env->get(node.getName())
         : std::make_shared<Exception>("Undefined variable: " + node.getName());
 }
 
@@ -26,7 +26,9 @@ void Interpreter::visit(FunctionDefNode& node) {
     if (node.isAnonymous()) {
         result = std::make_shared<String>("[function]");
     } else {
-        env.setFunction(node.getName(), std::make_shared<FunctionDefNode>(node));
+        // Store function definition in the current environment
+        // (for top-level definitions, this is the root environment)
+        env->setFunction(node.getName(), std::make_shared<FunctionDefNode>(node));
         result = std::make_shared<String>("");
     }
 }
@@ -39,14 +41,15 @@ static void bindParamsImpl(Environment& env,
                            Interpreter& interpreter) {
     size_t bindCount = std::min(params.size(), args.size());
     for (size_t i = 0; i < bindCount; ++i) {
-        env.set(params[i], *args[i]);
+        // Use setInCurrentScope so parameters shadow outer variables of the same name
+        env.setInCurrentScope(params[i], *args[i]);
     }
 
     for (size_t i = bindCount; i < params.size(); ++i) {
         if (i < paramDefaults.size() && paramDefaults[i] != nullptr) {
             paramDefaults[i]->accept(interpreter);
             if (result && !dynamic_cast<Exception*>(result.get())) {
-                env.set(params[i], *result);
+                env.setInCurrentScope(params[i], *result);
             } else {
                 result = std::make_shared<Exception>("Failed to evaluate default value for parameter: " + params[i]);
                 return;
@@ -70,10 +73,12 @@ void Interpreter::visit(FunctionCallNode& node) {
                 args.push_back(result);
             }
 
-            auto savedScope = env.scope;
-            bindParamsImpl(env, funcDef->getParams(), funcDef->getParamDefaults(), args, result, *this);
+            // Push a child environment so function body mutations
+            // to outer variables persist after the function returns
+            pushEnv();
+            bindParamsImpl(*env, funcDef->getParams(), funcDef->getParamDefaults(), args, result, *this);
             if (dynamic_cast<Exception*>(result.get())) {
-                env.scope = savedScope;
+                popEnv();
                 return;
             }
 
@@ -82,7 +87,7 @@ void Interpreter::visit(FunctionCallNode& node) {
             if (!funcDef->getHasExplicitReturn() && !dynamic_cast<Exception*>(result.get())) {
                 result = std::make_shared<String>("");
             }
-            env.scope = savedScope;
+            popEnv();
             return;
         }
     }
@@ -102,18 +107,20 @@ void Interpreter::visit(FunctionCallNode& node) {
     }
 
     // User-defined function
-    if (env.hasFunction(node.getName())) {
-        auto funcNode = env.getFunction(node.getName());
+    if (env->hasFunction(node.getName())) {
+        auto funcNode = env->getFunction(node.getName());
         auto funcDef = dynamic_cast<FunctionDefNode*>(funcNode.get());
         if (!funcDef) {
             result = std::make_shared<Exception>("Invalid function definition");
             return;
         }
 
-        auto savedScope = env.scope;
-        bindParamsImpl(env, funcDef->getParams(), funcDef->getParamDefaults(), args, result, *this);
+        // Push a child environment so function body mutations
+        // to outer variables persist after the function returns
+        pushEnv();
+        bindParamsImpl(*env, funcDef->getParams(), funcDef->getParamDefaults(), args, result, *this);
         if (dynamic_cast<Exception*>(result.get())) {
-            env.scope = savedScope;
+            popEnv();
             return;
         }
 
@@ -122,7 +129,7 @@ void Interpreter::visit(FunctionCallNode& node) {
         if (!funcDef->getHasExplicitReturn() && !dynamic_cast<Exception*>(result.get())) {
             result = std::make_shared<String>("");
         }
-        env.scope = savedScope;
+        popEnv();
         return;
     }
 

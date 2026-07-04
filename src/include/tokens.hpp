@@ -11,7 +11,6 @@
 #include <vector>
 #include "utils.hpp"
 
-
 namespace DemoLang {
 
 namespace Tokens {
@@ -29,14 +28,12 @@ enum class TokenType {
     ERROR               // Error
 };
 
-
 /**
  * @brief List of supported whitespaces.
 **/
 inline const std::vector<std::string> whitespaces = {
     " ", "\t", "\n", "\r"
 };
-
 
 /**
  * @brief List of supported operators.
@@ -48,7 +45,6 @@ inline const std::vector<std::string> operators = {
     "!", "&", "|", ",", ";",
     "@", "?", ":", "^", "#"
 };
-
 
 /**
  * @brief Token structure representing a lexical unit.

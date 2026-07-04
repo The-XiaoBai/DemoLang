@@ -7,19 +7,17 @@
 #ifndef DEMOLANG_PARSER
 #define DEMOLANG_PARSER
 
+#include <memory>
+#include <tuple>
+#include <utility>
+#include <vector>
 #include "tokens.hpp"
 #include "lexer.hpp"
 #include "ast.hpp"
-#include <memory>
-#include <vector>
-#include <tuple>
-#include <utility>
-
 
 namespace DemoLang {
 
 namespace ParserSpace {
-
 
 /**
  * @brief Parser class for converting tokens to AST.
@@ -41,7 +39,7 @@ public:
     size_t savePosition() const;
     void restorePosition(size_t pos);
     std::shared_ptr<AST::ASTNode> parse(const std::vector<Tokens::Token> &tokens);
-    std::shared_ptr<AST::ASTNode> parseExpression();
+    std::shared_ptr<AST::ASTNode> parseExpression(bool allowSequencing = true);
 
     /**
      * @brief Parse a parameter with optional default value.
@@ -49,13 +47,6 @@ public:
     **/
     std::tuple<std::string, std::shared_ptr<AST::ASTNode>, std::shared_ptr<AST::ASTNode>>
     parseOneParam();
-
-    /**
-     * @brief Parse a function call argument.
-     * @return (argNode, errorNode) - errorNode is non-null on error.
-    **/
-    std::pair<std::shared_ptr<AST::ASTNode>, std::shared_ptr<AST::ASTNode>>
-    parseOneArg();
 };
 
 /**
@@ -64,7 +55,6 @@ public:
  * @return (bodyNode, hasReturn)
 **/
 std::pair<std::shared_ptr<AST::ASTNode>, bool> parseFunctionBody(Parser& parser);
-
 
 /**
  * @brief Base parser for AST node generation.
@@ -78,7 +68,6 @@ public:
     virtual std::shared_ptr<AST::ASTNode> handle() = 0;
 };
 
-
 /**
  * @brief Parser for unary operations.
 **/
@@ -90,7 +79,6 @@ public:
     UnaryParser(Parser& parser, std::vector<std::string> operators);
     std::shared_ptr<AST::ASTNode> handle() override;
 };
-
 
 /**
  * @brief Parser for binary operations.
@@ -104,6 +92,15 @@ public:
     std::shared_ptr<AST::ASTNode> handle() override;
 };
 
+/**
+ * @brief Parser for postfix operations (e.g., index access expr[index]).
+ *        Applies to any expression parsed by subsequent handlers.
+**/
+class PostfixParser : public BaseParser {
+public:
+    PostfixParser(Parser& parser);
+    std::shared_ptr<AST::ASTNode> handle() override;
+};
 
 /**
  * @brief Parser for list literals.
@@ -114,7 +111,6 @@ public:
     std::shared_ptr<AST::ASTNode> handle() override;
 };
 
-
 /**
  * @brief Parser for function calls.
 **/
@@ -123,7 +119,6 @@ public:
     FunctionCallParser(Parser& parser);
     std::shared_ptr<AST::ASTNode> handle() override;
 };
-
 
 /**
  * @brief Parser for identifiers and index access.
@@ -134,7 +129,6 @@ public:
     std::shared_ptr<AST::ASTNode> handle() override;
 };
 
-
 /**
  * @brief Parser for if statements.
 **/
@@ -143,7 +137,6 @@ public:
     IfParser(Parser& parser);
     std::shared_ptr<AST::ASTNode> handle() override;
 };
-
 
 /**
  * @brief Parser for while statements.
@@ -154,7 +147,6 @@ public:
     std::shared_ptr<AST::ASTNode> handle() override;
 };
 
-
 /**
  * @brief Parser for break/continue statements.
 **/
@@ -163,7 +155,6 @@ public:
     LoopControlParser(Parser& parser);
     std::shared_ptr<AST::ASTNode> handle() override;
 };
-
 
 /**
  * @brief Parser for parenthesized expressions and lambdas.
@@ -174,7 +165,6 @@ public:
     std::shared_ptr<AST::ASTNode> handle() override;
 };
 
-
 /**
  * @brief Fallback parser for literal values.
 **/
@@ -183,7 +173,6 @@ public:
     LiteralFallbackParser(Parser& parser);
     std::shared_ptr<AST::ASTNode> handle() override;
 };
-
 
 } // namespace ParserSpace
 

@@ -27,7 +27,6 @@ void Interpreter::visit(ErrorNode& node) {
     result = std::make_shared<Exception>(node.getMessage());
 }
 
-
 void Interpreter::visit(ListNode& node) {
     std::vector<std::shared_ptr<BaseType>> elements;
     for (const auto& elem : node.getElements()) {
